@@ -3,16 +3,16 @@
 # Email used for notification
 # about new issues, comments
 email:
-  from: notify@gitlabhq.com
-  host: gitlabhq.com
+  from: system@dev.makandra.de
+  host: dev.makandra.de
 
 # Git Hosting congiguration
 git_host:
   system: gitolite
-  admin_uri: git@localhost:gitolite-admin
-  base_path: /home/git/repositories/
+  admin_uri: gitolite@localhost:gitolite-admin
+  base_path: /opt/gitolite/repositories/
   host: localhost
-  git_user: git
+  git_user: gitolite
   # port: 22
 
 # Git settings

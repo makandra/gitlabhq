@@ -44,7 +44,7 @@ describe Project do
 
   it "should return valid url to repo" do
     project = Project.new(:path => "somewhere")
-    project.url_to_repo.should == "git@localhost:somewhere.git"
+    project.url_to_repo.should == "#{GIT_HOST['git_user']}@localhost:somewhere.git"
   end
 
   it "should return path to repo" do
