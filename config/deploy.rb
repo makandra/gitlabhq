@@ -1,4 +1,5 @@
 require 'bundler/capistrano'
+#load 'deploy/assets'
 
 set :use_sudo, false
 set :deploy_via, :remote_cache
@@ -43,7 +44,7 @@ namespace :db do
   desc "Warn about pending migrations"
   task :warn_if_pending_migrations, :roles => :db, :only => { :primary => true } do
     rails_env = fetch(:rails_env, 'production')
-    run "cd #{release_path}; rake db:warn_if_pending_migrations RAILS_ENV=#{rails_env}"
+    run "cd #{release_path}; bundle exec rake db:warn_if_pending_migrations RAILS_ENV=#{rails_env}"
   end
 
   desc "Do a dump of the DB on the remote machine using dumple"
