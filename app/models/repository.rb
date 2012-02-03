@@ -75,7 +75,8 @@ class Repository
 
   def repo_exists?
     @repo_exists ||= (repo && !repo.branches.empty?)
-  rescue 
+  rescue Exception => e
+    Rails.logger.info "Could not access repo: #{e.message}"
     @repo_exists = false
   end
 
