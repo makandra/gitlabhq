@@ -39,6 +39,7 @@ group :development do
   gem "letter_opener"
   gem "rails-footnotes", "~> 3.7.5"
   gem "annotate", :git => "https://github.com/ctran/annotate_models.git"
+  gem "capistrano"
 end
 
 group :development, :test do
