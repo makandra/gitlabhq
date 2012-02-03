@@ -11,7 +11,7 @@ git_host:
   system: gitolite
   admin_uri: gitolite@localhost:gitolite-admin
   base_path: /opt/gitolite/repositories/
-  host: code.makandra.de
+  host: dev.makandra.de
   git_user: gitolite
   # port: 22
 
