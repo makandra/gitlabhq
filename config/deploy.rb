@@ -13,6 +13,13 @@ set :rails_env, 'production'
 set :branch, 'makandra'
 server "dev.makandra.de", :app, :web, :cron, :db, :primary => true
 
+set :default_environment, {
+  'PATH' => "/home/deploy-code-makandra/.rvm/gems/ruby-1.9.3-p0/bin:/home/deploy-code-makandra/.rvm/gems/ruby-1.9.3-p0@global/bin:/home/deploy-code-makandra/.rvm/rubies/ruby-1.9.3-p0/bin:$PATH",
+  'RUBY_VERSION' => 'ruby-1.9.3-p0',
+  'GEM_HOME'     => '/home/deploy-code-makandra/.rvm/gems/ruby-1.9.3-p0',
+  'GEM_PATH'     => '/home/deploy-code-makandra/.rvm/gems/ruby-1.9.3-p0:/home/deploy-code-makandra/.rvm/gems/ruby-1.9.3-p0@global'
+}
+
 
 namespace :passenger do
   desc "Restart Application"
