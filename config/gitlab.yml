@@ -4,14 +4,14 @@
 # about new issues, comments
 email:
   from: system@dev.makandra.de
-  host: dev.makandra.de
+  host: code.makandra.de
 
 # Git Hosting congiguration
 git_host:
   system: gitolite
   admin_uri: gitolite@localhost:gitolite-admin
   base_path: /opt/gitolite/repositories/
-  host: localhost
+  host: code.makandra.de
   git_user: gitolite
   # port: 22
 
