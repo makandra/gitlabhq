@@ -50,7 +50,7 @@ namespace :db do
   desc "Do a dump of the DB on the remote machine using dumple"
   task :dump do
     rails_env = fetch(:rails_env, 'production')
-    run "cd #{current_path}; dumple --fail-gently #{rails_env}"
+    run "cd #{current_path}; dumple #{rails_env}"
   end
 
   desc "Show usage of ~/dumps/ on remote host"
@@ -84,7 +84,7 @@ namespace :deploy do
 end
 
 
-#before "deploy:update_code", "db:dump"
+before "deploy:update_code", "db:dump"
 before "deploy:setup", :db
 after "deploy:update_code", "db:symlink" 
 after "deploy:update_code", "deploy:symlink_storage"
