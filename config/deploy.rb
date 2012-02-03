@@ -1,5 +1,4 @@
 require 'bundler/capistrano'
-#load 'deploy/assets'
 
 set :use_sudo, false
 set :deploy_via, :remote_cache
@@ -93,4 +92,5 @@ before "deploy:setup", 'deploy:setup_storage'
 after "deploy:symlink", "db:warn_if_pending_migrations"
 after "deploy:restart", "db:show_dump_usage"
 
+load 'deploy/assets'
 
