@@ -84,7 +84,7 @@ namespace :deploy do
 end
 
 
-before "deploy:update_code", "db:dump"
+#before "deploy:update_code", "db:dump"
 before "deploy:setup", :db
 after "deploy:update_code", "db:symlink" 
 after "deploy:update_code", "deploy:symlink_storage"
