@@ -44,13 +44,13 @@ describe "Admin::Users" do
       click_button "Save"
     end
 
-    it "should send valid email to user with email & password" do
+    it "should send valid email to user with email, but without password" do
       click_button "Save"
       user = User.last
       email = ActionMailer::Base.deliveries.last
       email.subject.should have_content("Account was created")
       email.body.should have_content(user.email)
-      email.body.should have_content(@password)
+      email.body.should_not have_content(@password)
     end
   end
 

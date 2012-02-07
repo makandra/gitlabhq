@@ -44,7 +44,7 @@ describe Project do
 
   it "should return valid url to repo" do
     project = Project.new(:path => "somewhere")
-    project.url_to_repo.should == "#{GIT_HOST['git_user']}@localhost:somewhere.git"
+    project.url_to_repo.should == "#{GIT_HOST['git_user']}@#{GIT_HOST['host']}:somewhere.git"
   end
 
   it "should return path to repo" do
@@ -155,7 +155,7 @@ describe Project do
           it { should include(id: @commit.id) }
           it { should include(message: @commit.safe_message) }
           it { should include(timestamp: @commit.date.xmlschema) }
-          it { should include(url: "http://localhost/#{project.code}/commits/#{@commit.id}") }
+          it { should include(url: "http://#{GIT_HOST['host']}/#{project.code}/commits/#{@commit.id}") }
 
           context "with a author" do
             subject { @data[:commits].first[:author] }
