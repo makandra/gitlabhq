@@ -9,10 +9,10 @@ email:
 # Git Hosting congiguration
 git_host:
   system: gitolite
-  admin_uri: gitolite@localhost:gitolite-admin
+  admin_uri: git@localhost:gitolite-admin
   base_path: /opt/gitolite/repositories/
   host: dev.makandra.de
-  git_user: gitolite
+  git_user: git
   # port: 22
 
 # Git settings
