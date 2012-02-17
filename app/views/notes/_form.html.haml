@@ -25,12 +25,17 @@
       
       %p.notify_controls
         %span Notify:
-        = check_box_tag :notify, 1, @note.noteable_type != "Commit"
+        - if @note.noteable_type == 'MergeRequest'
+          = check_box_tag :notify_involved, 1, true
+          = label_tag :notify_involved, "Users involved so far"
+
+        -if @note.noteable_type == "Commit" and @commit
+          = check_box_tag :notify_author, 1, true
+          = label_tag :notify_author, "Commit author"
+
+        = check_box_tag :notify, 1
         = label_tag :notify, "Project team"
 
-        -if @note.noteable_type == "Commit"
-          = check_box_tag :notify_author, 1 , @note.noteable_type == "Commit"
-          = label_tag :notify_author, "Commit author"
 
     .clear
     %br

@@ -42,6 +42,10 @@ class MergeRequest < ActiveRecord::Base
   def last_commit
     project.commit(source_branch)
   end
+
+  def involves?(user)
+    ([author, assignee] + notes.collect(&:author)).include?(user)
+  end
 end
 # == Schema Information
 #
