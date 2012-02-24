@@ -27,22 +27,29 @@ class MailerObserver < ActiveRecord::Observer
   end
 
   def new_note(note)
-    note.project.users.reject { |u| u.id == current_user.id } .each do |u|
-      case note.noteable_type
-      when "Commit" then
-        Notify.note_commit_email(u, note).deliver if note.notify
-      when "Issue" then
-        Notify.note_issue_email(u, note).deliver if note.notify
-      when "MergeRequest" then
-        Notify.note_merge_request_email(u, note).deliver if note.notify or (note.notify_involved and note.noteable.involves?(u))
-      when "Snippet"
-        true
-      else
-        Notify.note_wall_email(u, note).deliver if note.notify
+    if note.notify
+      note.project.users.reject { |u| u.id == current_user.id } .each do |u|
+        case note.noteable_type
+        when "Commit" then
+          Notify.note_commit_email(u, note).deliver
+        when "Issue" then
+          Notify.note_issue_email(u, note).deliver
+        when "MergeRequest" then
+          Notify.note_merge_request_email(u, note).deliver
+        when "Snippet"
+          true
+        else
+          Notify.note_wall_email(u, note).deliver
+        end
       end
     # Notify only author of resource
     elsif note.notify_author
       Notify.note_commit_email(note.commit_author, note).deliver
+    # Notify all involved in discussion
+    elsif note.notify_involved
+      note.noteable.involved_users.reject { |u| u.id == current_user.id } .each do |u|
+        Notify.note_merge_request_email(u, note).deliver
+      end
     end
   end
 

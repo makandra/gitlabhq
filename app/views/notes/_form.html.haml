@@ -12,11 +12,11 @@
   .row
     .span4
       %h5 Notify via email:
-      .clearfix
+      .clearfix.inputs-list
         - if @note.noteable_type == 'MergeRequest'
           = label_tag :notify_involved do
             = check_box_tag :notify_involved, 1, true
-            %span Users involved so far
+            %span Users involved
 
         - if @note.notify_only_author?(current_user)
           = label_tag :notify_author do
@@ -24,7 +24,7 @@
             %span Commit author
 
         = label_tag :notify do 
-          = check_box_tag :notify, 1, @note.noteable_type != "Commit"
+          = check_box_tag :notify, 1, @note.noteable_type != "Commit" && @note.noteable_type != 'MergeRequest'
           %span Project team
 
 
@@ -35,4 +35,4 @@
         .input= f.file_field :attachment, :class => "input-file"
 
 
-    = f.submit 'Add note', :class => "positive-button", :id => "submit_note"
+  = f.submit 'Add note', :class => "positive-button", :id => "submit_note"
