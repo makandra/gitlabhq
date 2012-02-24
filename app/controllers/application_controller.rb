@@ -48,6 +48,10 @@ class ApplicationController < ActionController::Base
     return render_404 unless can?(current_user, action, project)
   end
 
+  def authorize_code_access!
+    return render_404 unless can?(current_user, :download_code, project)
+  end
+
   def access_denied!
     render_404
   end
@@ -94,5 +98,9 @@ class ApplicationController < ActionController::Base
     response.headers["Cache-Control"] = "no-cache, no-store, max-age=0, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "Fri, 01 Jan 1990 00:00:00 GMT"
+  end
+
+  def render_full_content
+    @full_content = true
   end
 end

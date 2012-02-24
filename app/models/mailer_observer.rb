@@ -30,7 +30,7 @@ class MailerObserver < ActiveRecord::Observer
     note.project.users.reject { |u| u.id == current_user.id } .each do |u|
       case note.noteable_type
       when "Commit" then
-        Notify.note_commit_email(u, note).deliver
+        Notify.note_commit_email(u, note).deliver if note.notify
       when "Issue" then
         Notify.note_issue_email(u, note).deliver if note.notify
       when "MergeRequest" then
@@ -40,6 +40,9 @@ class MailerObserver < ActiveRecord::Observer
       else
         Notify.note_wall_email(u, note).deliver if note.notify
       end
+    # Notify only author of resource
+    elsif note.notify_author
+      Notify.note_commit_email(note.commit_author, note).deliver
     end
   end
 

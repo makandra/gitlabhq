@@ -8,13 +8,10 @@
 }
 
 .tree_progress { 
-  float:left;
-  width:16px;
-  height:16px;
-  margin:2px 6px;
+  display:none;
+  margin:20px;
   &.loading { 
-    background-position: 0px 0px;
-    background: url("ajax-loader-facebook.gif") no-repeat;
+    display:block;
   }
 }
 
@@ -116,6 +113,63 @@ table.highlighttable .linenodiv pre {
 
 .tree-item { 
   &:hover { 
-    background: #FFFFCF;
+    background: $hover;
+    cursor:pointer;
+  }
+
+
+  .tree-item-file-name { 
+    font-weight:bold;
+    a { 
+      color:$style_color;
+    }
+
+    img { 
+      position: relative;
+      top: 2px;
+    }
+  }
+}
+
+.breadcrumb {
+  background:white;
+  border:none;
+
+  a { 
+    color:$link_color;
+    font-weight:bold;
+    font-size:13px;
+  }
+}
+
+#tree-slider { 
+  @include shade;
+
+  td { 
+    padding:7px;
+    border-color:#f1f1f1;
+  }
+
+  th { 
+    background:#f5f5f5;
+  }
+}
+
+.tree-commit-link { 
+  color:#333;
+}
+
+#tree-content-holder .view_file{ 
+  @include shade;
+}
+
+#tree-readme-holder .readme { 
+  @include shade;
+  margin-bottom:20px;
+}
+
+a.tree-commit-link { 
+  &:hover { 
+    text-decoration: underline;
   }
 }

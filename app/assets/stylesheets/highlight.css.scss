@@ -17,6 +17,7 @@ td.code,
 td.linenos{
   padding:0;
   margin:0;
+  border-top:0;
   vertical-align:top;
 }
 
@@ -25,7 +26,13 @@ td.linenos{
   padding:10px 0px 0px 10px;
   margin-left:0px;
 }
+
+.linenodiv pre,
 .highlight pre{
+  margin:0;
+  padding:0;
+  background:none;
+  border:none;
 }
 
 .linenodiv pre {
@@ -48,7 +55,7 @@ td.code .highlight {
 table.highlighttable pre{
   padding:0;
   margin:0;
-  font-family: 'Courier New', 'andale mono','lucida console',monospace;
+  font-family: 'Menlo', 'Courier New', 'andale mono','lucida console',monospace;
   color: #333;
   text-align:left;
 }
@@ -62,7 +69,7 @@ table.highlighttable pre{
     padding:0;
     line-height:2.0;
     margin:0;
-    font-family: 'Courier New', 'andale mono','lucida console',monospace;
+    font-family: 'Menlo', 'Courier New', 'andale mono','lucida console',monospace;
     color: #333;
     text-align:left;}
   }
