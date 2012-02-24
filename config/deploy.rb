@@ -38,7 +38,6 @@ namespace :db do
   desc "Make symlink for database yaml" 
   task :symlink do
     run "ln -nfs #{shared_path}/config/database.yml #{release_path}/config/database.yml" 
-    run "ln -nfs #{shared_path}/config/secret_token.rb #{release_path}/config/initializers/secret_token.rb" 
   end
 
   desc "Warn about pending migrations"
@@ -67,10 +66,6 @@ namespace :deploy do
     run "mkdir -p #{shared_path}/storage"
   end
   
-  task :symlink_storage do
-    run "ln -nfs #{shared_path}/storage #{release_path}/storage"
-  end
-
   task :restart do
     passenger.restart
   end
@@ -81,13 +76,19 @@ namespace :deploy do
   task :stop do
   end
 
+  task :additional_symlinks do
+    run "ln -nfs #{shared_path}/storage #{release_path}/storage"
+    run "ln -nfs #{shared_path}/config/secret_token.rb #{release_path}/config/initializers/secret_token.rb" 
+    run "ln -nfs #{shared_path}/config/gitlab.yml #{release_path}/config/gitlab.yml"
+  end
+
 end
 
 
 before "deploy:update_code", "db:dump"
 before "deploy:setup", :db
 after "deploy:update_code", "db:symlink" 
-after "deploy:update_code", "deploy:symlink_storage"
+after "deploy:update_code", "deploy:additional_symlinks"
 before "deploy:setup", 'deploy:setup_storage'
 after "deploy:symlink", "db:warn_if_pending_migrations"
 after "deploy:restart", "db:show_dump_usage"
