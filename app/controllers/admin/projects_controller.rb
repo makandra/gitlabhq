@@ -31,9 +31,10 @@ class Admin::ProjectsController < ApplicationController
     UsersProject.bulk_import(
       @admin_project, 
       params[:user_ids],
-      params[:project_access],
-      params[:repo_access]
+      params[:project_access]
     )
+
+    @admin_project.update_repository
 
     redirect_to [:admin, @admin_project], notice: 'Project was successfully updated.'
   end

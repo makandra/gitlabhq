@@ -1,11 +1,4 @@
 = render "head"
-%h3 
-  Commits
-  - if current_user.private_token   
-    %span.rss-icon
-      = link_to project_commits_path(@project, :atom, { :private_token => current_user.private_token, :ref => @ref }) do 
-        = image_tag "Rss-UI.PNG", :width => 22, :title => "feed"
-%hr
 
 - if params[:path]
   %ul.breadcrumb
@@ -21,7 +14,6 @@
   #commits_list= render "commits"
 .clear
 .loading{ :style => "display:none;"}
-  %center= image_tag "ajax-loader.gif"
 
 - if @commits.count == @limit
   :javascript

@@ -4,11 +4,11 @@
     = link_to new_project_merge_request_path(@project), :class => "right btn small", :title => "New Merge Request" do 
       New Merge Request
 
-%hr
+%br
 
 .ui-box
   .title
-    %ul.pills
+    %ul.nav.nav-pills
       %li{:class => ("active" if (params[:f] == "0" || !params[:f]))}
         = link_to project_merge_requests_path(@project, :f => 0) do 
           Open
@@ -22,5 +22,15 @@
         = link_to project_merge_requests_path(@project, :f => 1) do 
           All
 
-  %ul.unstyled= render @merge_requests
+  %ul.unstyled
+    = render @merge_requests
+    - if @merge_requests.blank?
+      %li
+        %p.padded Nothing to show here
+    - if @merge_requests.present?
+      %li.bottom
+        .row
+          .span7= paginate @merge_requests, :theme => "gitlab"
+          .span4.right
+            %span.cgray.right #{@merge_requests.total_count} merge requests for this filter
 

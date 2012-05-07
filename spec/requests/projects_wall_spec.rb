@@ -8,7 +8,7 @@ describe "Projects", "Wall" do
     project.add_access(@user, :read, :write)
   end
 
-  describe "View notes on wall" do
+  describe "View notes on wall", :js => true do
     before do
       Factory :note, :project => project, :note => "Project specs", :author => @user
       visit wall_project_path(project)
@@ -23,7 +23,7 @@ describe "Projects", "Wall" do
     before do
       visit wall_project_path(project)
       fill_in "note_note", :with => "my post on wall"
-      click_button "Add note"
+      click_button "Add Comment"
     end
 
     it "should conatin new note" do

@@ -42,7 +42,7 @@ describe "MergeRequests" do
 
       it { should have_content(@merge_request.title[0..10]) }
       it "Show page should inform user that merge request closed" do 
-        page.should have_content "Reopen" 
+        page.should have_content "Closed" 
       end
     end
   end
@@ -52,7 +52,7 @@ describe "MergeRequests" do
       visit new_project_merge_request_path(project)
       fill_in "merge_request_title", :with => "Merge Request Title" 
       select "master", :from => "merge_request_source_branch"
-      select "master", :from => "merge_request_target_branch"
+      select "stable", :from => "merge_request_target_branch"
       select @user.name, :from => "merge_request_assignee_id"
       click_button "Save"
     end

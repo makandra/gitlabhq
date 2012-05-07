@@ -1,25 +1,19 @@
 %ul.breadcrumb
   %li
-    = form_tag switch_project_refs_path(@project), :method => :get, :class => "project-refs-form left", :remote => true do
-      = select_tag "ref", grouped_options_refs, :onchange => "$(this.form).trigger('submit');", :class => "project-refs-select"
-      = hidden_field_tag :destination, "tree"
-      = hidden_field_tag :path, params[:path]
-
-  %li
+    %span.arrow
     = link_to tree_project_ref_path(@project, @ref, :path => nil), :remote => true do
-      = @project.code
+      = @project.name
   - tree.breadcrumbs(6) do |link|
     \/
     %li= link
 .clear
 %div.tree_progress
-  = image_tag "ajax-loader.gif"
 #tree-content-holder
   - if tree.is_blob?
     = render :partial => "refs/tree_file", :locals => { :name => tree.name, :content => tree.data, :file => tree }
   - else
     - contents = tree.contents
-    %table#tree-slider.bordered-table
+    %table#tree-slider.bordered-table.table
       %thead
         %th Name
         %th Last Update
@@ -30,7 +24,7 @@
       - if tree.up_dir?
         %tr{ :class => "tree-item", :url => tree.up_dir_path }
           %td.tree-item-file-name
-            = image_tag "dir.png"
+            = image_tag "file_empty.png"
             = link_to "..", tree.up_dir_path, :remote => :true
           %td
           %td
@@ -47,7 +41,8 @@
         %h3= content.name
         .readme
           - if content.name =~ /\.(md|markdown)$/i
-            = markdown(content.data)
+            = preserve do
+              = markdown(content.data)
           - else
             = simple_format(content.data)
 

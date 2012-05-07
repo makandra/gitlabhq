@@ -12,14 +12,14 @@
       Path
     .input
       .input-prepend
-        %span.add-on= "git@#{GIT_HOST["host"]}:"
+        %span.add-on= "#{GIT_HOST["git_user"]}@#{GIT_HOST["host"]}:"
         = f.text_field :path, :placeholder => "example_project", :disabled => !@project.new_record?
   .clearfix
     = f.label :code do 
       Code
     .input
       .input-prepend
-        %span.add-on= "http://#{GIT_HOST["host"]}/"
+        %span.add-on= web_app_url
         = f.text_field :code, :placeholder => "example"
 
   - unless @project.new_record? || @project.heads.empty?  
@@ -48,7 +48,9 @@
     
   .clearfix
     = f.label :description
-    .input= f.text_area :description, :placeholder => "project description", :class => "xlarge", :rows => 4
+    .input
+      = f.text_area :description, :placeholder => "project description", :class => "xxlarge", :rows => 5
+      %p.hint Markdown is enabled.
 
   %br
   

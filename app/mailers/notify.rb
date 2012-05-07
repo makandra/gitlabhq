@@ -1,5 +1,9 @@
 class Notify < ActionMailer::Base
+  add_template_helper ApplicationHelper
+
   default_url_options[:host] = EMAIL_OPTS["host"]
+  default_url_options[:protocol] = -> { EMAIL_OPTS["protocol"] ? EMAIL_OPTS["protocol"] : "http" }.call
+
   default from: EMAIL_OPTS["from"]
 
   def new_user_email(user, password)

@@ -1,17 +1,17 @@
 = render "repositories/branches_head"
 
-.alert-message.block-message
+.alert
   %p Protected branches designed to prevent push for all except #{link_to "masters", help_permissions_path, :class => "vlink"}. 
   %p This ability allows: 
   %ul
     %li keep stable branches secured
     %li forced code review before merge to protected branches
-  %p Ream more about project permissions #{link_to "here", help_permissions_path, :class => "vlink"}
+  %p Read more about project permissions #{link_to "here", help_permissions_path, :class => "vlink"}
 
 
 
 - unless @branches.empty?
-  %table.zebra-striped
+  %table.table-striped
     %thead
       %tr
         %th Name

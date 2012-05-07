@@ -46,21 +46,6 @@ describe "Issues" do
       page.body.should have_selector("entry summary", :text => @issue.title)
     end
 
-    describe "Destroy" do
-      before do
-        # admin access to remove issue
-        @user.users_projects.destroy_all
-        project.add_access(@user, :read, :write, :admin)
-        visit edit_project_issue_path(project, @issue)
-      end
-
-      it "should remove entry" do
-        expect {
-          click_link "Remove"
-        }.to change { Issue.count }.by(-1)
-      end
-    end
-
     describe "statuses" do
       before do
         @closed_issue = Factory :issue,
@@ -107,10 +92,10 @@ describe "Issues" do
           select @user.name, :from => "issue_assignee_id" 
         end
 
-        it { expect { click_button "Save" }.to change {Issue.count}.by(1) }
+        it { expect { click_button "Submit new issue" }.to change {Issue.count}.by(1) }
 
         it "should add new issue to table" do
-          click_button "Save"
+          click_button "Submit new issue"
 
           page.should_not have_content("Add new issue")
           page.should have_content @user.name
@@ -120,7 +105,7 @@ describe "Issues" do
 
         it "should call send mail" do
           Notify.should_not_receive(:new_issue_email)
-          click_button "Save"
+          click_button "Submit new issue"
         end
       end
 
@@ -131,10 +116,10 @@ describe "Issues" do
           select @user2.name, :from => "issue_assignee_id" 
         end
 
-        it { expect { click_button "Save" }.to change {Issue.count}.by(1) }
+        it { expect { click_button "Submit new issue" }.to change {Issue.count}.by(1) }
 
         it "should add new issue to table" do
-          click_button "Save"
+          click_button "Submit new issue"
 
           page.should_not have_content("Add new issue")
           page.should have_content @user2.name
@@ -144,11 +129,11 @@ describe "Issues" do
 
         it "should call send mail" do
           Notify.should_receive(:new_issue_email).and_return(stub(:deliver => true))
-          click_button "Save"
+          click_button "Submit new issue"
         end
 
         it "should send valid email to user" do
-          click_button "Save"
+          click_button "Submit new issue"
           issue = Issue.last
           email = ActionMailer::Base.deliveries.last
           email.subject.should have_content("New Issue was created")
@@ -192,12 +177,13 @@ describe "Issues" do
     describe "fill in" do
       before do
         fill_in "issue_title", :with => "bug 345"
+        fill_in "issue_description", :with => "bug description"
       end
 
-      it { expect { click_button "Save" }.to_not change {Issue.count} }
+      it { expect { click_button "Save changes" }.to_not change {Issue.count} }
 
       it "should update issue fields" do
-        click_button "Save"
+        click_button "Save changes"
 
         page.should have_content @user.name
         page.should have_content "bug 345"

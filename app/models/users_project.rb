@@ -18,7 +18,7 @@ class UsersProject < ActiveRecord::Base
 
   delegate :name, :email, :to => :user, :prefix => true
 
-  def self.bulk_import(project, user_ids, project_access, repo_access)
+  def self.bulk_import(project, user_ids, project_access)
     UsersProject.transaction do
       user_ids.each do |user_id|
         users_project = UsersProject.new(
@@ -31,7 +31,7 @@ class UsersProject < ActiveRecord::Base
     end
   end
 
-  def self.user_bulk_import(user, project_ids, project_access, repo_access)
+  def self.user_bulk_import(user, project_ids, project_access)
     UsersProject.transaction do
       project_ids.each do |project_id|
         users_project = UsersProject.new(
@@ -80,7 +80,6 @@ end
 #  project_id     :integer         not null
 #  created_at     :datetime
 #  updated_at     :datetime
-#  repo_access    :integer         default(0), not null
 #  project_access :integer         default(0), not null
 #
 

@@ -25,7 +25,7 @@ describe "MergeRequests" do
     end
 
     it 'should only send a mail to the assignee' do
-      click_button "Add note"
+      click_button "Add Comment"
       ActionMailer::Base.deliveries.should have(1).mail
       email = ActionMailer::Base.deliveries.last
       email.subject.should have_content("gitlab | note for merge request")
@@ -37,7 +37,7 @@ describe "MergeRequests" do
         :project => project,
         :noteable => @merge_request,
         :author => team_member
-      click_button "Add note"
+      click_button "Add Comment"
       ActionMailer::Base.deliveries.should have(2).mail
       emails = ActionMailer::Base.deliveries
       emails.collect(&:to).should =~ [[assignee.email], [team_member.email]]
@@ -50,7 +50,7 @@ describe "MergeRequests" do
       visit project_merge_request_path(project, @merge_request.id)
       fill_in "note_note", :with => "My note" 
       check "notify"
-      click_button "Add note"
+      click_button "Add Comment"
     end
 
     it 'should only send a mail to the assignee' do

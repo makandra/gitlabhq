@@ -6,17 +6,14 @@
     = link_to new_project_hook_path(@project), :class => "btn small", :title => "New Web Hook" do 
       Add Post Receive Hook
 
-%table.zebra-striped.borders
-  - @hooks.each do |hook|
-    %tr
-      %td
-        = link_to project_hook_path(@project, hook) do
-          = hook.url
-      %td
-        = link_to 'Remove', project_hook_path(@project, hook), :confirm => 'Are you sure?', :method => :delete, :class => "danger btn small"
+    %p Read more about web hooks #{link_to "here", help_web_hooks_path, :class => "vlink"}
 
-
-.alert-message.block-message
-  We send some data with POST request when someone makes git push
-
-.well= render "data_ex"
+-if @hooks.any?
+  %table
+    - @hooks.each do |hook|
+      %tr
+        %td
+          = link_to project_hook_path(@project, hook) do
+            = hook.url
+        %td
+          = link_to 'Remove', project_hook_path(@project, hook), :confirm => 'Are you sure?', :method => :delete, :class => "danger btn small right"

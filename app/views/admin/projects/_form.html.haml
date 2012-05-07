@@ -13,14 +13,14 @@
       Path
     .input
       .input-prepend
-        %span.add-on= "git@#{GIT_HOST["host"]}:"
+        %span.add-on= "#{GIT_HOST["git_user"]}@#{GIT_HOST["host"]}:"
         = f.text_field :path, :placeholder => "example_project", :disabled => !@admin_project.new_record?
   .clearfix
     = f.label :code do 
       Code
     .input
       .input-prepend
-        %span.add-on= "http://#{GIT_HOST["host"]}/"
+        %span.add-on= web_app_url
         = f.text_field :code, :placeholder => "example"
 
   - unless @admin_project.new_record?
@@ -28,7 +28,7 @@
       = f.label :owner_id
       .input= f.select :owner_id, User.all.map { |user| [user.name, user.id] }
 
-    - unless @admin_project.heads.empty?  
+    - if @admin_project.repo_exists?  
       .clearfix
         = f.label :default_branch, "Default Branch"
         .input= f.select(:default_branch, @admin_project.heads.map(&:name), {}, :style => "width:210px;")
@@ -56,11 +56,11 @@
   .actions
     = f.submit 'Save', :class => "btn primary"
     = link_to 'Cancel', [:admin, @admin_project], :class => "btn"
-    = link_to 'Destroy', [:admin, @admin_project], :confirm => 'Are you sure?', :method => :delete, :class => "btn danger right"
+    - unless @admin_project.new_record?
+      = link_to 'Destroy', [:admin, @admin_project], :confirm => 'Are you sure?', :method => :delete, :class => "btn danger right"
 
 :javascript
   $(function(){
-    taggifyForm();
     $('#project_owner_id').chosen();
-    $('#project_default_branch').chosen();
+    new Projects();
   })

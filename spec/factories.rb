@@ -2,14 +2,14 @@ require File.join(Rails.root, 'spec', 'factory')
 
 Factory.add(:project, Project) do |obj|
   obj.name = Faker::Internet.user_name
-  obj.path = 'legit'
+  obj.path = 'gitlabhq'
   obj.owner = Factory(:user)
   obj.code = 'LGT'
 end
 
 Factory.add(:public_project, Project) do |obj|
   obj.name = Faker::Internet.user_name
-  obj.path = 'legit'
+  obj.path = 'gitlabhq'
   obj.private_flag = false
   obj.owner = Factory(:user)
   obj.code = 'LGT'
@@ -32,12 +32,16 @@ end
 
 Factory.add(:issue, Issue) do |obj|
   obj.title = Faker::Lorem.sentence
+  obj.author = Factory :user
+  obj.assignee = Factory :user
 end
 
 Factory.add(:merge_request, MergeRequest) do |obj|
   obj.title = Faker::Lorem.sentence
+  obj.author = Factory :user
+  obj.assignee = Factory :user
   obj.source_branch = "master"
-  obj.target_branch = "master"
+  obj.target_branch = "stable"
   obj.closed = false
 end
 
@@ -60,7 +64,19 @@ Factory.add(:web_hook, WebHook) do |obj|
   obj.url = Faker::Internet.url
 end
 
-Factory.add(:wikis, WebHook) do |obj|
+Factory.add(:wiki, Wiki) do |obj|
   obj.title = Faker::Lorem.sentence
   obj.content = Faker::Lorem.sentence
+  obj.user = Factory(:user)
+  obj.project = Factory(:project)
+end
+
+Factory.add(:event, Event) do |obj|
+  obj.title = Faker::Lorem.sentence
+  obj.project = Factory(:project)
+end
+
+Factory.add(:milestone, Milestone) do |obj|
+  obj.title = Faker::Lorem.sentence
+  obj.due_date = Date.today + 1.month
 end

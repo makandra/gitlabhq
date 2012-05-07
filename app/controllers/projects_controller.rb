@@ -11,8 +11,9 @@ class ProjectsController < ApplicationController
   before_filter :require_non_empty_project, :only => [:blob, :tree, :graph]
 
   def index
-    @limit, @offset = (params[:limit] || 16), (params[:offset] || 0)
-    @projects = current_user.projects.order(:name).limit(@limit).offset(@offset)
+    @projects = current_user.projects.includes(:events).order("events.created_at DESC")
+    @projects = @projects.page(params[:page]).per(40)
+    @events = Event.where(:project_id => current_user.projects.map(&:id)).recent.limit(20)
   end
 
   def new
@@ -67,9 +68,18 @@ class ProjectsController < ApplicationController
   end
 
   def show
-    return render "projects/empty" unless @project.repo_exists? && @project.has_commits?
-    limit = (params[:limit] || 10).to_i
-    @activities = @project.activities(limit)
+    limit = (params[:limit] || 20).to_i
+    @events = @project.events.recent.limit(limit)
+
+    respond_to do |format|
+      format.html do 
+         if @project.repo_exists? && @project.has_commits?
+           render :show
+         else
+           render "projects/empty"
+         end
+      end
+    end
   end
 
   def files
@@ -82,14 +92,10 @@ class ProjectsController < ApplicationController
 
   def wall
     return render_404 unless @project.wall_enabled
-
     @note = Note.new
-    @notes = @project.common_notes.order("created_at DESC")
-    @notes = @notes.fresh.limit(20)
 
     respond_to do |format|
       format.html
-      format.js { respond_with_notes }
     end
   end
 
@@ -114,6 +120,7 @@ class ProjectsController < ApplicationController
 
   def project
     @project ||= Project.find_by_code(params[:id])
+    @project || render_404
   end
 
   def determine_layout

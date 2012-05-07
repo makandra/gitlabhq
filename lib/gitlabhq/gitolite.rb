@@ -6,6 +6,14 @@ module Gitlabhq
   class Gitolite
     class AccessDenied < StandardError; end
 
+    def self.update_project(path, project)
+      self.new.configure { |git| git.update_project(path, project) }
+    end
+
+    def self.destroy_project(project)
+      self.new.configure { |git| git.destroy_project(project) }
+    end
+
     def pull
       # create tmp dir
       @local_dir = File.join(Dir.tmpdir,"gitlabhq-gitolite-#{Time.now.to_i}")
@@ -114,6 +122,35 @@ module Gitlabhq
       repo.add_permission("RW+", "", name_masters) unless name_masters.blank?
 
       repo
+    end
+
+    def admin_all_repo
+      ga_repo = ::Gitolite::GitoliteAdmin.new(File.join(@local_dir,'gitolite'))
+      conf = ga_repo.config
+      owner_name = ""
+
+      # Read gitolite-admin user
+      #
+      begin 
+        repo = conf.get_repo("gitolite-admin")
+        owner_name = repo.permissions[0]["RW+"][""][0]
+        raise StandardError if owner_name.blank?
+      rescue => ex
+        puts "Cant determine gitolite-admin owner".red
+        raise StandardError
+      end
+
+      # @ALL repos premission for gitolite owner
+      repo_name = "@all"
+      repo = if conf.has_repo?(repo_name)
+               conf.get_repo(repo_name)
+             else 
+               ::Gitolite::Config::Repo.new(repo_name)
+             end
+
+      repo.add_permission("RW+", "", owner_name)
+      conf.add_repo(repo, true)
+      ga_repo.save
     end
   end
 end

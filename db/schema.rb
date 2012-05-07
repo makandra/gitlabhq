@@ -11,7 +11,31 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120219193300) do
+ActiveRecord::Schema.define(:version => 20120413135904) do
+
+  create_table "events", :force => true do |t|
+    t.string   "target_type"
+    t.integer  "target_id"
+    t.string   "title"
+    t.text     "data"
+    t.integer  "project_id"
+    t.datetime "created_at",  :null => false
+    t.datetime "updated_at",  :null => false
+    t.integer  "action"
+    t.integer  "author_id"
+  end
+
+  create_table "features", :force => true do |t|
+    t.string   "name"
+    t.string   "branch_name"
+    t.integer  "assignee_id"
+    t.integer  "author_id"
+    t.integer  "project_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "version"
+    t.integer  "status",      :default => 0, :null => false
+  end
 
   create_table "issues", :force => true do |t|
     t.string   "title"
@@ -20,10 +44,12 @@ ActiveRecord::Schema.define(:version => 20120219193300) do
     t.integer  "project_id"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.boolean  "closed",      :default => false, :null => false
-    t.integer  "position",    :default => 0
-    t.boolean  "critical",    :default => false, :null => false
+    t.boolean  "closed",       :default => false, :null => false
+    t.integer  "position",     :default => 0
+    t.boolean  "critical",     :default => false, :null => false
     t.string   "branch_name"
+    t.text     "description"
+    t.integer  "milestone_id"
   end
 
   add_index "issues", ["project_id"], :name => "index_issues_on_project_id"
@@ -39,18 +65,32 @@ ActiveRecord::Schema.define(:version => 20120219193300) do
   end
 
   create_table "merge_requests", :force => true do |t|
-    t.string   "target_branch",                    :null => false
-    t.string   "source_branch",                    :null => false
-    t.integer  "project_id",                       :null => false
+    t.string   "target_branch",                                          :null => false
+    t.string   "source_branch",                                          :null => false
+    t.integer  "project_id",                                             :null => false
     t.integer  "author_id"
     t.integer  "assignee_id"
     t.string   "title"
-    t.boolean  "closed",        :default => false, :null => false
+    t.boolean  "closed",                              :default => false, :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.text     "st_commits",    :limit => 2147483647
+    t.text     "st_diffs",      :limit => 2147483647
+    t.boolean  "merged",                              :default => false, :null => false
+    t.integer  "state",                               :default => 1,     :null => false
   end
 
   add_index "merge_requests", ["project_id"], :name => "index_merge_requests_on_project_id"
+
+  create_table "milestones", :force => true do |t|
+    t.string   "title",                          :null => false
+    t.integer  "project_id",                     :null => false
+    t.text     "description"
+    t.date     "due_date"
+    t.boolean  "closed",      :default => false, :null => false
+    t.datetime "created_at",                     :null => false
+    t.datetime "updated_at",                     :null => false
+  end
 
   create_table "notes", :force => true do |t|
     t.text     "note"
@@ -139,6 +179,9 @@ ActiveRecord::Schema.define(:version => 20120219193300) do
     t.string   "twitter",                               :default => "",    :null => false
     t.string   "authentication_token"
     t.boolean  "dark_scheme",                           :default => false, :null => false
+    t.integer  "theme_id",                              :default => 1,     :null => false
+    t.string   "bio"
+    t.boolean  "blocked",                               :default => false, :null => false
   end
 
   add_index "users", ["email"], :name => "index_users_on_email", :unique => true

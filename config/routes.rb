@@ -1,5 +1,5 @@
 Gitlab::Application.routes.draw do
-
+  get 'search' => "search#show"
 
   # Optionally, enable Resque here
   require 'resque/server'
@@ -8,11 +8,14 @@ Gitlab::Application.routes.draw do
   get 'help' => 'help#index'
   get 'help/permissions' => 'help#permissions'
   get 'help/workflow' => 'help#workflow'
+  get 'help/web_hooks' => 'help#web_hooks'
 
   namespace :admin do
     resources :users do 
       member do 
         put :team_update
+        put :block
+        put :unblock
       end
     end
     resources :projects, :constraints => { :id => /[^\/]+/ } do 
@@ -26,7 +29,7 @@ Gitlab::Application.routes.draw do
     get 'mailer/preview_note'
     get 'mailer/preview_user_new'
     get 'mailer/preview_issue_new'
-    root :to => "users#index"
+    root :to => "dashboard#index"
   end
 
   get "errors/githost"
@@ -37,11 +40,8 @@ Gitlab::Application.routes.draw do
   get "profile/design", :to => "profile#design"
   put "profile/update", :to => "profile#update"
 
-  get "dashboard", :to => "dashboard#index"
   get "dashboard/issues", :to => "dashboard#issues"
   get "dashboard/merge_requests", :to => "dashboard#merge_requests"
-
-  #get "profile/:id", :to => "profile#show"
 
   resources :projects, :constraints => { :id => /[^\/]+/ }, :only => [:new, :create, :index]
   resources :keys
@@ -100,6 +100,13 @@ Gitlab::Application.routes.draw do
     resources :merge_requests do 
       member do 
         get :diffs
+        get :automerge
+        get :automerge_check
+      end
+
+      collection do 
+        get :branch_from
+        get :branch_to
       end
     end
     
@@ -115,13 +122,14 @@ Gitlab::Application.routes.draw do
       end
     end
     resources :team_members
+    resources :milestones
     resources :issues do
       collection do
         post  :sort
         get   :search
       end
     end
-    resources :notes, :only => [:create, :destroy]
+    resources :notes, :only => [:index, :create, :destroy]
   end
   root :to => "projects#index"
 end
