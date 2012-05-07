@@ -9,6 +9,8 @@ module Gitlabhq
       else
         message
       end.force_encoding("utf-8")
+    rescue
+      message.force_encoding("utf-8")
     end
   end
 end
