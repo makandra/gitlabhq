@@ -131,6 +131,7 @@ GEM
       term-ansicolor (~> 1.0.7)
       thor (>= 0.13.6)
     git (1.2.5)
+    god (0.12.1)
     haml (3.1.4)
     haml-rails (0.3.4)
       actionpack (~> 3.0)
@@ -343,6 +344,7 @@ DEPENDENCIES
   foreman
   git
   gitolite!
+  god
   grit!
   haml (= 3.1.4)
   haml-rails

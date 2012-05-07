@@ -84,6 +84,32 @@ namespace :deploy do
 
 end
 
+namespace :god do
+  def god_is_running
+    !capture("#{god_command} status >/dev/null 2>/dev/null || echo 'not running'").start_with?('not running')
+  end
+
+  def god_command
+    "cd #{current_path}; bundle exec god"
+  end
+
+  desc "Stop god"
+  task :terminate_if_running do
+    if god_is_running
+      run "#{god_command} terminate"
+    end
+  end
+
+  desc "Start god"
+  task :start do
+    config_file = "#{current_path}/config/god/resque.god"
+    environment = { :RAILS_ENV => rails_env, :RAILS_ROOT => current_path }
+    run "#{god_command} -c #{config_file}", :env => environment
+  end
+end
+
+before "deploy:update", "god:terminate_if_running"
+after "deploy:update", "god:start"
 
 before "deploy:update_code", "db:dump"
 before "deploy:setup", :db

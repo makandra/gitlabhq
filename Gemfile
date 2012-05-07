@@ -42,6 +42,10 @@ group :assets do
   gem "uglifier",     "1.0.3"
 end
 
+group :server do
+  gem "god"
+end
+
 group :development do
   gem "letter_opener"
   gem "rails-footnotes"
