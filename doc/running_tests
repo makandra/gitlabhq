@@ -1,0 +1,7 @@
+Make sure seeds are there:
+RAILS_ENV=test rake db:seed_fu
+
+Put frozen selenium firefox in path:
+export PATH=$SELENIUM_FIREFOX_PATH:$PATH 
+
+Run tests!
