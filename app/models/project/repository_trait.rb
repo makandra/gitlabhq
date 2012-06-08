@@ -89,7 +89,7 @@ module Project::RepositoryTrait
     end
 
     def heads
-      @heads ||= repo.heads
+      @heads ||= repo.heads.sort_by(&:name)
     end
 
     def tree(fcommit, path = nil)

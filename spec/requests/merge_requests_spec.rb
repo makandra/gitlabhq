@@ -64,4 +64,14 @@ describe "MergeRequests" do
       page.should have_content @user.name
     end
   end
+
+  describe "GET /merge_requests/new" do 
+    before do
+      visit new_project_merge_request_path(project)
+    end
+
+    it "should see branch names sorted correctly" do
+      page.text.should =~ /master.*stable/
+    end
+  end
 end
