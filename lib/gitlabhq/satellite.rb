@@ -25,6 +25,7 @@ module Gitlabhq
     def clear
       Dir.chdir(path) do
         heads = Grit::Repo.new(".").heads.map{|head| head.name}
+        `git reset --hard`
         if heads.include? PARKING_BRANCH
           `git checkout #{PARKING_BRANCH}`
         else
