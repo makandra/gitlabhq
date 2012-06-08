@@ -14,7 +14,7 @@ module Gitlabhq
     end
 
     def path
-      File.join(Rails.root, "tmp", "repo_satellites", project.path)
+      File.join(Rails.root, "storage", "repo_satellites", project.path)
     end
 
     def exists?
