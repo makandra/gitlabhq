@@ -53,7 +53,7 @@
           %small #{time_ago_in_words(@merge_request.closed_event.created_at)} ago.
 
 
-- if @merge_request.open? && @commits.any? && can?(current_user, :accept_mr, @project)
+- if @merge_request.open? && @commits.any? && can?(current_user, :accept_mr, @project) && AUTOMERGING_ENABLED
   .automerge_widget.can_be_merged{:style => "display:none"}
     .ui-box.padded
       %p 

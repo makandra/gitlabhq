@@ -9,6 +9,8 @@ if defined?(Bundler)
   # Bundler.require(:default, :assets, Rails.env)
 end
 
+AUTOMERGING_ENABLED = false
+
 module Gitlab
   class Application < Rails::Application
     # Settings in config/environments/* take precedence over those specified here.
