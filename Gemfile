@@ -51,6 +51,7 @@ group :development do
   gem "rails-footnotes"
   gem "annotate", :git => "https://github.com/ctran/annotate_models.git"
   gem "capistrano"
+  gem "capistrano_colors"
 end
 
 group :development, :test do
