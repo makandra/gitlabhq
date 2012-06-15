@@ -33,7 +33,7 @@ module Gitlabhq
     end
 
     def configure
-      status = Timeout::timeout(20) do
+      status = Timeout::timeout(50) do
         File.open(File.join(Dir.tmpdir,"gitlabhq-gitolite.lock"), "w+") do |f|
           begin 
             f.flock(File::LOCK_EX)
