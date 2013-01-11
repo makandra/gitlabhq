@@ -5,6 +5,9 @@ require 'rspec'
 require 'database_cleaner'
 require 'spinach/capybara'
 
+require './features/support/allow_rescue'
+
+
 %w(gitolite_stub stubbed_repository valid_commit).each do |f|
   require Rails.root.join('spec', 'support', f)
 end

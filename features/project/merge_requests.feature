@@ -37,9 +37,10 @@ Feature: Project Merge Requests
   Scenario: Branch names should be sorted
     Then I should see "master" before "stable"
 
-  @javascript
+  @javascript @allow-rescue
   Scenario: I comment merge request
     Given I visit merge request page "Bug NS-04"
     And I leave a comment like "XML attached"
+    Then show me the page
     Then I should see comment "XML attached"
 

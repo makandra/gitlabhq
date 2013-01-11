@@ -3,7 +3,8 @@ require 'spec_helper'
 describe NoteObserver do
   subject { NoteObserver.instance }
 
-  let(:team_without_author) { (1..2).map { |n| double :user, id: n } }
+  let(:users) { (1..3).map { |n| double :user, id: n } }
+  let(:users_without_author) { (1..2).map { |n| double :user, id: n } }
   let(:delivery_success) { double deliver: true }
 
   describe '#after_create' do
@@ -25,47 +26,43 @@ describe NoteObserver do
   end
 
   describe "#send_notify_mails" do
-    let(:note) { double :note, notify: false, notify_author: false }
+    let(:note) { double :note, notify: false, notify_author: false, notify_involved: false }
 
     it 'notifies team of new note when flagged to notify' do
       note.stub(:notify).and_return(true)
-      subject.should_receive(:notify_team).with(note)
-
-      subject.after_create(note)
-    end
-
-    it 'does not notify team of new note when not flagged to notify' do
-      subject.should_not_receive(:notify_team).with(note)
+      note.stub_chain(:project, :users).and_return(:team)
+      subject.should_receive(:notify_users).with(note, :team)
 
       subject.after_create(note)
     end
 
     it 'notifies the author of a commit when flagged to notify the author' do
       note.stub(:notify_author).and_return(true)
-      note.stub(:id).and_return(42)
-      author = double :user, id: 1
-      note.stub(:commit_author).and_return(author)
-      Notify.should_receive(:note_commit_email).and_return(delivery_success)
+      note.stub(:commit_author).and_return(:author)
+      subject.should_receive(:notify_users).with(note, [:author])
 
       subject.after_create(note)
     end
 
-    it 'does not notify the author of a commit when not flagged to notify the author' do
-      Notify.should_not_receive(:note_commit_email)
+    it 'notifies the involved users when flagged to notify involved users' do
+      note.stub(:notify_involved).and_return(true)
+      note.stub_chain(:noteable, :involved_users).and_return(:involved_users)
+      subject.should_receive(:notify_users).with(note, :involved_users)
 
       subject.after_create(note)
     end
 
     it 'does nothing if no notify flags are set' do
+      subject.should_not_receive(:notify_users)
       subject.after_create(note).should be_nil
     end
   end
 
-  describe '#notify_team' do
+  describe '#notify_users' do
     let(:note) { double :note, id: 1 }
 
     before :each do
-      subject.stub(:team_without_note_author).with(note).and_return(team_without_author)
+      subject.stub(:users_without_note_author).with(users, note).and_return(users_without_author)
     end
 
     context 'notifies team of a new note on' do
@@ -73,28 +70,28 @@ describe NoteObserver do
         note.stub(:noteable_type).and_return('Commit')
         Notify.should_receive(:note_commit_email).twice.and_return(delivery_success)
 
-        subject.send(:notify_team, note)
+        subject.send(:notify_users, note, users)
       end
 
       it 'an issue' do
         note.stub(:noteable_type).and_return('Issue')
         Notify.should_receive(:note_issue_email).twice.and_return(delivery_success)
 
-        subject.send(:notify_team, note)
+        subject.send(:notify_users, note, users)
       end
 
       it 'a wiki page' do
         note.stub(:noteable_type).and_return('Wiki')
         Notify.should_receive(:note_wiki_email).twice.and_return(delivery_success)
 
-        subject.send(:notify_team, note)
+        subject.send(:notify_users, note, users)
       end
 
       it 'a merge request' do
         note.stub(:noteable_type).and_return('MergeRequest')
         Notify.should_receive(:note_merge_request_email).twice.and_return(delivery_success)
 
-        subject.send(:notify_team, note)
+        subject.send(:notify_users, note, users)
       end
 
       it 'a wall' do
@@ -102,27 +99,24 @@ describe NoteObserver do
         note.stub(:noteable_type).and_return(nil)
         Notify.should_receive(:note_wall_email).twice.and_return(delivery_success)
 
-        subject.send(:notify_team, note)
+        subject.send(:notify_users, note, users)
       end
     end
 
     it 'does nothing for a new note on a snippet' do
         note.stub(:noteable_type).and_return('Snippet')
 
-        subject.send(:notify_team, note).should be_nil
+        subject.send(:notify_users, note, users).should be_nil
     end
   end
 
 
-  describe '#team_without_note_author' do
-    let(:author) { double :user, id: 4 }
-
-    let(:users) { team_without_author + [author] }
-    let(:project)  { double :project, users: users }
-    let(:note) { double :note, project: project, author: author }
+  describe '#users_without_note_author' do
+    let(:author) { double :user, id: 3 }
+    let(:note) { double :note, author: author }
 
     it 'returns the projects user without the note author included' do
-      subject.send(:team_without_note_author, note).should == team_without_author
+      subject.send(:users_without_note_author, users, note).map(&:id).should == users_without_author.map(&:id)
     end
   end
 end

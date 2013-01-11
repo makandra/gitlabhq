@@ -203,7 +203,7 @@ class MergeRequest < ActiveRecord::Base
   end
 
   def involved_users
-    ([author, assignee] + notes.collect(&:author)).uniq
+    ([author, assignee] + notes.collect(&:author)).uniq.compact
   end
 
   def mr_and_commit_notes

@@ -79,6 +79,11 @@ class ProjectMergeRequests < Spinach::FeatureSteps
   end
 
   Then 'I should see "master" before "stable"' do
-    page.text.should =~ /master.*stable/
+    page.text.should =~ /master.*stable/m
   end
+
+  Then 'show me the page' do
+    save_and_open_page
+  end
+
 end

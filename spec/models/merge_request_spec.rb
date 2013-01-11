@@ -46,7 +46,7 @@ describe MergeRequest do
     it 'should return author, assignee and all who wrote notes' do
       subject.author = author
       subject.assignee = assignee
-      subject.notes = [Note.new.tap { |n| n.author = note_author1 }, Note.new.tap { |n| n.author = note_author2 }]
+      subject.stub :notes => [Note.new.tap { |n| n.author = note_author1 }, Note.new.tap { |n| n.author = note_author2 }]
 
       subject.involved_users.should =~ [author, assignee, note_author1, note_author2]
     end
@@ -54,7 +54,7 @@ describe MergeRequest do
     it 'should not return users twice' do
       subject.author = author
       subject.assignee = author
-      subject.notes = [Note.new.tap { |n| n.author = author }]
+      subject.stub :notes => [Note.new.tap { |n| n.author = author }]
 
       subject.involved_users.should == [author]
     end

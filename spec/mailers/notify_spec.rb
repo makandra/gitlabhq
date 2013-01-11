@@ -31,8 +31,8 @@ describe Notify do
       should have_body_text /#{new_user.email}/
     end
 
-    it 'contains the new user\'s password' do
-      should have_body_text /#{new_user.password}/
+    it 'does not contain the new user\'s password' do
+      should_not have_body_text /#{new_user.password}/
     end
 
     it 'includes a link to the site' do
