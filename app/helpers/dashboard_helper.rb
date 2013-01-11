@@ -1,36 +1,32 @@
 module DashboardHelper
-  def dashboard_feed_path(project, object)
-    case object.class.name.to_s
-    when "Issue" then project_issue_path(project, project.issues.find(object.id))
-    when "Commit" then project_commit_path(project, project.repo.commits(object.id).first)
-    when "MergeRequest" then project_merge_request_path(project, object.id)
-    when "Note"
-      then
-      note = object
-      case note.noteable_type
-      when "Issue" then project_issue_path(project, note.noteable_id)
-      when "Snippet" then project_snippet_path(project, note.noteable_id)
-      when "Commit" then project_commit_path(project, :id => note.noteable_id)
-      when "MergeRequest" then project_merge_request_path(project, note.noteable_id)
-      else wall_project_path(project)
-      end
-    else wall_project_path(project)
+  def dashboard_filter_path(entity, options={})
+    exist_opts = {
+      status: params[:status],
+      project_id: params[:project_id],
+    }
+
+    options = exist_opts.merge(options)
+
+    case entity
+    when 'issue' then
+      dashboard_issues_path(options)
+    when 'merge_request'
+      dashboard_merge_requests_path(options)
     end
-  rescue
-    "#"
   end
 
-  def dashboard_feed_title(object)
-    klass = object.class.to_s.split("::").last
+  def entities_per_project project, entity
+    items = project.items_for(entity)
 
-    title = case klass
-            when "Note" then markdown(object.note)
-            when "Issue" then object.title
-            when "Commit" then object.safe_message
-            when "MergeRequest" then object.title
-            else return "Project Wall"
+    items = case params[:status]
+            when 'closed'
+              items.closed
+            when 'all'
+              items
+            else
+              items.opened
             end
 
-    truncate(sanitize(title, :tags => []), :length => 60)
+    items.where(assignee_id: current_user.id).count
   end
 end

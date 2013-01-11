@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe "Projects", "DeployKeys" do
-  let(:project) { Factory :project }
+  let(:project) { create(:project) }
 
   before do
     login_as :user
@@ -10,7 +10,7 @@ describe "Projects", "DeployKeys" do
 
   describe "GET /keys" do
     before do
-      @key = Factory :key, :project => project
+      @key = create(:key, project: project)
       visit project_deploy_keys_path(project)
     end
 
@@ -41,8 +41,8 @@ describe "Projects", "DeployKeys" do
 
     describe "fill in" do
       before do
-        fill_in "key_title", :with => "laptop"
-        fill_in "key_key", :with => "publickey234="
+        fill_in "key_title", with: "laptop"
+        fill_in "key_key", with: "ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAzrEJUIR6Y03TCE9rIJ+GqTBvgb8t1jI9h5UBzCLuK4VawOmkLornPqLDrGbm6tcwM/wBrrLvVOqi2HwmkKEIecVO0a64A4rIYScVsXIniHRS6w5twyn1MD3sIbN+socBDcaldECQa2u1dI3tnNVcs8wi77fiRe7RSxePsJceGoheRQgC8AZ510UdIlO+9rjIHUdVN7LLyz512auAfYsgx1OfablkQ/XJcdEwDNgi9imI6nAXhmoKUm1IPLT2yKajTIC64AjLOnE0YyCh6+7RFMpiMyu1qiOCpdjYwTgBRiciNRZCH8xIedyCoAmiUgkUT40XYHwLuwiPJICpkAzp7Q== user@laptop"
       end
 
       it { expect { click_button "Save" }.to change {Key.count}.by(1) }
@@ -55,12 +55,12 @@ describe "Projects", "DeployKeys" do
     end
   end
 
-  describe "Show page" do 
+  describe "Show page" do
     before do
-      @key = Factory :key, :project => project
-      visit project_deploy_key_path(project, @key) 
+      @key = create(:key, project: project)
+      visit project_deploy_key_path(project, @key)
     end
-    
+
     it { page.should have_content @key.title }
     it { page.should have_content @key.key[0..10] }
   end

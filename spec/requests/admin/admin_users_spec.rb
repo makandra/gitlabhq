@@ -22,10 +22,11 @@ describe "Admin::Users" do
     before do
       @password = "123ABC"
       visit new_admin_user_path
-      fill_in "user_name", :with => "Big Bang"
-      fill_in "user_email", :with => "bigbang@mail.com"
-      fill_in "user_password", :with => @password
-      fill_in "user_password_confirmation", :with => @password
+      fill_in "user_name", with: "Big Bang"
+      fill_in "user_username", with: "bang"
+      fill_in "user_email", with: "bigbang@mail.com"
+      fill_in "user_password", with: @password
+      fill_in "user_password_confirmation", with: @password
     end
 
     it "should create new user" do
@@ -40,17 +41,24 @@ describe "Admin::Users" do
     end
 
     it "should call send mail" do
-      Notify.should_receive(:new_user_email).and_return(stub(:deliver => true))
-      click_button "Save"
+      Notify.should_receive(:new_user_email).and_return(stub(deliver: true))
+
+      User.observers.enable :user_observer do
+        click_button "Save"
+      end
     end
 
-    it "should send valid email to user with email, but without password" do
-      click_button "Save"
-      user = User.last
-      email = ActionMailer::Base.deliveries.last
-      email.subject.should have_content("Account was created")
-      email.body.should have_content(user.email)
-      email.body.should_not have_content(@password)
+    it "should send valid email to user with email & password" do
+      User.observers.enable :user_observer do
+        with_resque do
+          click_button "Save"
+        end
+        user = User.last
+        email = ActionMailer::Base.deliveries.last
+        email.subject.should have_content("Account was created")
+        email.body.should have_content(user.email)
+        email.body.should_not have_content(@password)
+      end
     end
   end
 
@@ -69,7 +77,7 @@ describe "Admin::Users" do
 
   describe "GET /admin/users/:id/edit" do
     before do
-      @simple_user = Factory :user
+      @simple_user = create(:user)
       visit admin_users_path
       click_link "edit_user_#{@simple_user.id}"
     end
@@ -81,8 +89,8 @@ describe "Admin::Users" do
 
     describe "Update user" do
       before do
-        fill_in "user_name", :with => "Big Bang"
-        fill_in "user_email", :with => "bigbang@mail.com"
+        fill_in "user_name", with: "Big Bang"
+        fill_in "user_email", with: "bigbang@mail.com"
         check "user_admin"
         click_button "Save"
       end
@@ -100,14 +108,14 @@ describe "Admin::Users" do
     end
   end
 
-  describe "Add new project" do 
-    before do 
-      @new_project = Factory :project
+  describe "Add new project" do
+    before do
+      @new_project = create(:project)
       visit admin_user_path(@user)
     end
 
-    it "should create new user" do 
-      select @new_project.name, :from => "project_ids"
+    it "should create new user" do
+      select @new_project.name, from: "project_ids"
       expect { click_button "Add" }.to change { UsersProject.count }.by(1)
       page.should have_content @new_project.name
       current_path.should == admin_user_path(@user)

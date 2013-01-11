@@ -1,48 +1,31 @@
-class IssuesController < ApplicationController
-  before_filter :authenticate_user!
-  before_filter :project
+class IssuesController < ProjectResourceController
   before_filter :module_enabled
-  before_filter :issue, :only => [:edit, :update, :destroy, :show]
-  layout "project"
-
-  # Authorize
-  before_filter :add_project_abilities
+  before_filter :issue, only: [:edit, :update, :show]
 
   # Allow read any issue
   before_filter :authorize_read_issue!
 
   # Allow write(create) issue
-  before_filter :authorize_write_issue!, :only => [:new, :create]
+  before_filter :authorize_write_issue!, only: [:new, :create]
 
   # Allow modify issue
-  before_filter :authorize_modify_issue!, :only => [:close, :edit, :update]
-
-  # Allow destroy issue
-  before_filter :authorize_admin_issue!, :only => [:destroy]
+  before_filter :authorize_modify_issue!, only: [:edit, :update]
 
   respond_to :js, :html
 
   def index
-    @issues = case params[:f].to_i
-              when 1 then @project.issues
-              when 2 then @project.issues.closed
-              when 3 then @project.issues.opened.assigned(current_user)
-              else @project.issues.opened
-              end
-
-    @issues = @issues.where(:milestone_id => params[:milestone_id]) if params[:milestone_id].present?
+    @issues = issues_filtered
     @issues = @issues.page(params[:page]).per(20)
-    @issues = @issues.includes(:author, :project).order("critical, updated_at")
 
     respond_to do |format|
       format.html # index.html.erb
       format.js
-      format.atom { render :layout => false }
+      format.atom { render layout: false }
     end
   end
 
   def new
-    @issue = @project.issues.new
+    @issue = @project.issues.new(params[:issue])
     respond_with(@issue)
   end
 
@@ -51,7 +34,7 @@ class IssuesController < ApplicationController
   end
 
   def show
-    @note = @project.notes.new(:noteable => @issue)
+    @note = @project.notes.new(noteable: @issue)
 
     respond_to do |format|
       format.html
@@ -65,17 +48,23 @@ class IssuesController < ApplicationController
     @issue.save
 
     respond_to do |format|
-      format.html { redirect_to project_issue_path(@project, @issue) }
+      format.html do
+        if @issue.valid?
+          redirect_to project_issue_path(@project, @issue)
+        else
+          render :new
+        end
+      end
       format.js
     end
   end
 
   def update
-    @issue.update_attributes(params[:issue].merge(:author_id_of_changes => current_user.id))
+    @issue.update_attributes(params[:issue].merge(author_id_of_changes: current_user.id))
 
     respond_to do |format|
       format.js
-      format.html do 
+      format.html do
         if @issue.valid?
           redirect_to [@project, @issue]
         else
@@ -85,43 +74,31 @@ class IssuesController < ApplicationController
     end
   end
 
-  def destroy
-    return access_denied! unless can?(current_user, :admin_issue, @issue)
-
-    @issue.destroy
-
-    respond_to do |format|
-      format.html { redirect_to project_issues_path }
-      format.js { render :nothing => true }
-    end
-  end
-
   def sort
     return render_404 unless can?(current_user, :admin_issue, @project)
 
-    @issues = @project.issues.where(:id => params['issue'])
+    @issues = @project.issues.where(id: params['issue'])
     @issues.each do |issue|
       issue.position = params['issue'].index(issue.id.to_s) + 1
       issue.save
     end
 
-    render :nothing => true
+    render nothing: true
   end
 
   def search
     terms = params['terms']
 
-    @project  = Project.find(params['project'])
-    @issues   = case params[:status].to_i
-                  when 1 then @project.issues
-                  when 2 then @project.issues.closed
-                  when 3 then @project.issues.opened.assigned(current_user)
-                  else @project.issues.opened
-                end.page(params[:page]).per(100)
-
+    @issues = issues_filtered
     @issues = @issues.where("title LIKE ?", "%#{terms}%") unless terms.blank?
+    @issues = @issues.page(params[:page]).per(100)
 
-    render :partial => 'issues'
+    render partial: 'issues'
+  end
+
+  def bulk_update
+    result = IssuesBulkUpdateContext.new(project, current_user, params).execute
+    redirect_to :back, notice: "#{result[:count]} issues updated"
   end
 
   protected
@@ -140,5 +117,9 @@ class IssuesController < ApplicationController
 
   def module_enabled
     return render_404 unless @project.issues_enabled
+  end
+
+  def issues_filtered
+    @issues = IssuesListContext.new(project, current_user, params).execute
   end
 end

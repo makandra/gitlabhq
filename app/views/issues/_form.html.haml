@@ -1,52 +1,84 @@
 %div.issue-form-holder
-  %h3= @issue.new_record? ? "New Issue" : "Edit Issue ##{@issue.id}"
-  = form_for [@project, @issue], :remote => request.xhr? do |f|
+  %h3.page_title= @issue.new_record? ? "New Issue" : "Edit Issue ##{@issue.id}"
+  = form_for [@project, @issue] do |f|
     -if @issue.errors.any?
       .alert-message.block-message.error
-        %ul
-          - @issue.errors.full_messages.each do |msg|
-            %li= msg
+        - @issue.errors.full_messages.each do |msg|
+          %span= msg
+          %br
     .issue_form_box
       .issue_title
         .clearfix
-          = f.label :title, "Issue Subject *"
+          = f.label :title do
+            %strong= "Subject *"
           .input
-            = f.text_field :title, :maxlength => 255, :class => "xxlarge"
+            = f.text_field :title, maxlength: 255, class: "xxlarge js-gfm-input", autofocus: true, required: true
       .issue_middle_block
         .issue_assignee
-          = f.label :assignee_id, "Assign to *"
-          .input= f.select(:assignee_id, @project.users.all.collect {|p| [ p.name, p.id ] }, { :include_blank => "Assign to user" })
+          = f.label :assignee_id do
+            %i.icon-user
+            Assign to
+          .input= f.select(:assignee_id, @project.users.all.collect {|p| [ p.name, p.id ] }, { include_blank: "Select a user" }, {class: 'chosen'})
         .issue_milestone
-          = f.label :milestone_id
-          .input= f.select(:milestone_id, @project.milestones.active.all.collect {|p| [ p.title, p.id ] }, { :include_blank => "Select milestone" })
+          = f.label :milestone_id do
+            %i.icon-time
+            Milestone
+          .input= f.select(:milestone_id, @project.milestones.active.all.collect {|p| [ p.title, p.id ] }, { include_blank: "Select milestone" }, {class: 'chosen'})
 
       .issue_description
         .clearfix
-          = f.label :critical, "Critical"
-          .input= f.check_box :critical
-        
-        - unless @issue.new_record?
-          .clearfix
-            = f.label :closed
-            .input= f.check_box :closed
-        .clearfix
-          = f.label :description, "Issue Details"
+          = f.label :label_list do
+            %i.icon-tag
+            Labels
           .input
-            = f.text_area :description, :maxlength => 2000, :class => "xxlarge", :rows => 14
-            %p.hint Markdown is enabled.
+            = f.text_field :label_list, maxlength: 2000, class: "xxlarge"
+            %p.hint Separate with comma.
 
+        .clearfix
+          = f.label :description, "Details"
+          .input
+            = f.text_area :description, maxlength: 2000, class: "xxlarge js-gfm-input", rows: 14
+            %p.hint Issues are parsed with #{link_to "GitLab Flavored Markdown", help_markdown_path, target: '_blank'}.
 
 
     .actions
       - if @issue.new_record?
-        = f.submit 'Submit new issue', :class => "primary btn"
+        = f.submit 'Submit new issue', class: "btn save-btn"
       -else
-        = f.submit 'Save changes', :class => "primary btn"
+        = f.submit 'Save changes', class: "save-btn btn"
 
-      - if request.xhr?
-        = link_to "Cancel", "#back", :onclick => "backToIssues();", :class => "btn" 
-      - else 
-        - if @issue.new_record?
-          = link_to "Cancel", project_issues_path(@project), :class => "btn"
-        - else    
-          = link_to "Cancel", project_issue_path(@project, @issue), :class => "btn"
+      - cancel_path = @issue.new_record? ? project_issues_path(@project) : project_issue_path(@project, @issue)
+      = link_to "Cancel", cancel_path, class: 'btn cancel-btn'
+
+
+
+
+:javascript
+  $(function(){
+    $("#issue_label_list")
+      .bind( "keydown", function( event ) {
+        if ( event.keyCode === $.ui.keyCode.TAB &&
+          $( this ).data( "autocomplete" ).menu.active ) {
+          event.preventDefault();
+        }
+      })
+      .autocomplete({
+        minLength: 0,
+        source: function( request, response ) {
+          response( $.ui.autocomplete.filter(
+            #{raw labels_autocomplete_source}, extractLast( request.term ) ) );
+        },
+        focus: function() {
+          return false;
+        },
+        select: function(event, ui) {
+          var terms = split( this.value );
+          terms.pop();
+          terms.push( ui.item.value );
+          terms.push( "" );
+          this.value = terms.join( ", " );
+          return false;
+        }
+      });
+  });
+

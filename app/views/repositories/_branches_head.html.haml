@@ -1,12 +1,10 @@
 = render "commits/head"
 %ul.nav.nav-pills
-  %li{:class => ("active" if current_page?(project_repository_path(@project)))}
-    = link_to project_repository_path(@project) do 
-      Recent
-  %li{:class => ("active" if current_page?(project_protected_branches_path(@project)))}
-    = link_to project_protected_branches_path(@project) do 
+  = nav_link(path: 'repositories#show') do
+    = link_to 'Recent', project_repository_path(@project)
+  = nav_link(path: 'protected_branches#index') do
+    = link_to project_protected_branches_path(@project) do
+      %i.icon-lock
       Protected
-  %li{:class => ("active" if current_page?(branches_project_repository_path(@project)))}
-    = link_to branches_project_repository_path(@project) do 
-      All
-%hr
+  = nav_link(path: 'repositories#branches') do
+    = link_to 'All', branches_project_repository_path(@project)

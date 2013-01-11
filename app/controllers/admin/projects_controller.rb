@@ -1,75 +1,51 @@
-class Admin::ProjectsController < ApplicationController
-  layout "admin"
-  before_filter :authenticate_user!
-  before_filter :authenticate_admin!
+class Admin::ProjectsController < AdminController
+  before_filter :project, only: [:edit, :show, :update, :destroy, :team_update]
 
   def index
-    @admin_projects = Project.page(params[:page])
+    @projects = Project.scoped
+    @projects = @projects.where(namespace_id: params[:namespace_id]) if params[:namespace_id].present?
+    @projects = @projects.where(namespace_id: nil) if params[:namespace_id] == Namespace.global_id
+    @projects = @projects.search(params[:name]) if params[:name].present?
+    @projects = @projects.includes(:namespace).order("namespaces.path, projects.name ASC").page(params[:page]).per(20)
   end
 
   def show
-    @admin_project = Project.find_by_code(params[:id])
-
-    @users = if @admin_project.users.empty?
-               User
-             else
-               User.not_in_project(@admin_project)
-             end.all
-  end
-
-  def new
-    @admin_project = Project.new
+    @users = User.active
+    @users = @users.not_in_project(@project) if @project.users.present?
+    @users = @users.all
   end
 
   def edit
-    @admin_project = Project.find_by_code(params[:id])
   end
 
   def team_update
-    @admin_project = Project.find_by_code(params[:id])
+    @project.add_users_ids_to_team(params[:user_ids], params[:project_access])
 
-    UsersProject.bulk_import(
-      @admin_project, 
-      params[:user_ids],
-      params[:project_access]
-    )
-
-    @admin_project.update_repository
-
-    redirect_to [:admin, @admin_project], notice: 'Project was successfully updated.'
-  end
-
-  def create
-    @admin_project = Project.new(params[:project])
-    @admin_project.owner = current_user
-
-    if @admin_project.save
-      redirect_to [:admin, @admin_project], notice: 'Project was successfully created.'
-    else
-      render :action => "new"
-    end
+    redirect_to [:admin, @project], notice: 'Project was successfully updated.'
   end
 
   def update
-    @admin_project = Project.find_by_code(params[:id])
+    status = ProjectUpdateContext.new(project, current_user, params).execute(:admin)
 
-    owner_id = params[:project].delete(:owner_id)
-
-    if owner_id 
-      @admin_project.owner = User.find(owner_id)
-    end
-
-    if @admin_project.update_attributes(params[:project])
-      redirect_to [:admin, @admin_project], notice: 'Project was successfully updated.'
+    if status
+      redirect_to [:admin, @project], notice: 'Project was successfully updated.'
     else
-      render :action => "edit"
+      render action: "edit"
     end
   end
 
   def destroy
-    @admin_project = Project.find_by_code(params[:id])
-    @admin_project.destroy
+    @project.destroy
 
-    redirect_to admin_projects_url
+    redirect_to admin_projects_path, notice: 'Project was successfully deleted.'
+  end
+
+  protected
+
+  def project
+    id = params[:project_id] || params[:id]
+
+    @project = Project.find_with_namespace(id)
+    @project || render_404
   end
 end

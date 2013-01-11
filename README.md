@@ -1,4 +1,4 @@
-# Welcome to GitLab [![build status](https://secure.travis-ci.org/gitlabhq/gitlabhq.png)](https://secure.travis-ci.org/gitlabhq/gitlabhq)
+# Welcome to GitLab [![build status](https://secure.travis-ci.org/gitlabhq/gitlabhq.png)](https://travis-ci.org/gitlabhq/gitlabhq) [![build status](https://secure.travis-ci.org/gitlabhq/grit.png)](https://travis-ci.org/gitlabhq/grit) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/gitlabhq/gitlabhq) [![Dependency Status](https://gemnasium.com/gitlabhq/gitlabhq.png)](https://gemnasium.com/gitlabhq/gitlabhq)
 
 GitLab is a free project and repository management application
 
@@ -12,8 +12,8 @@ GitLab is a free project and repository management application
 ## Requirements
 
 * Ubuntu/Debian
-* ruby 1.9.2+
-* mysql or sqlite
+* ruby 1.9.3+
+* MySQL
 * git
 * gitolite
 * redis
@@ -39,5 +39,6 @@ Email
 
 ## Contribute
 
+[Development Tips](https://github.com/gitlabhq/gitlabhq/blob/master/doc/development.md)
 Want to help - send a pull request.
 We'll accept good pull requests.

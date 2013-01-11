@@ -1,19 +1,11 @@
 = render "projects/project_head"
 
-%h3
+%h3.page_title
   = @snippet.title
   %small= @snippet.file_name
   - if can?(current_user, :admin_snippet, @project) || @snippet.author == current_user
-    = link_to "Edit", edit_project_snippet_path(@project, @snippet), :class => "btn small right"
+    = link_to "Edit", edit_project_snippet_path(@project, @snippet), class: "btn small right"
 
 %br
-#tree-holder
-  #tree-content-holder
-    .view_file
-      .view_file_header
-        %strong= @snippet.file_name
-      .view_file_content
-        %div{:class => current_user.dark_scheme ? "black" : ""}
-          = raw @snippet.colorize(options: { linenos: 'True'})
-
-= render "notes/notes", :tid => @snippet.id, :tt => "snippet"
+%div= render 'blob'
+%div#notes= render "notes/notes_with_form", tid: @snippet.id, tt: "snippet"

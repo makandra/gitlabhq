@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe "Snippets" do
-  let(:project) { Factory :project }
+  let(:project) { create(:project) }
 
   before do
     login_as :user
@@ -10,9 +10,9 @@ describe "Snippets" do
 
   describe "GET /snippets" do
     before do
-      @snippet = Factory :snippet,
-        :author => @user,
-        :project => project
+      @snippet = create(:snippet,
+                        author: @user,
+                        project: project)
 
       visit project_snippets_path(project)
     end
@@ -48,11 +48,11 @@ describe "Snippets" do
       page.current_path.should == new_project_snippet_path(project)
     end
 
-    describe "fill in" do
+    describe "fill in", js: true do
       before do
-        fill_in "snippet_title", :with => "login function"
-        fill_in "snippet_file_name", :with => "test.rb"
-        fill_in "snippet_content", :with => "def login; end"
+        fill_in "snippet_title", with: "login function"
+        fill_in "snippet_file_name", with: "test.rb"
+        page.execute_script("editor.insert('def login; end');")
       end
 
       it { expect { click_button "Save" }.to change {Snippet.count}.by(1) }
@@ -68,9 +68,9 @@ describe "Snippets" do
 
   describe "Edit snippet" do
     before do
-      @snippet = Factory :snippet,
-        :author => @user,
-        :project => project
+      @snippet = create(:snippet,
+                        author: @user,
+                        project: project)
       visit project_snippet_path(project, @snippet)
       click_link "Edit"
     end
@@ -81,9 +81,8 @@ describe "Snippets" do
 
     describe "fill in" do
       before do
-        fill_in "snippet_title", :with => "login function"
-        fill_in "snippet_file_name", :with => "test.rb"
-        fill_in "snippet_content", :with => "def login; end"
+        fill_in "snippet_title", with: "login function"
+        fill_in "snippet_file_name", with: "test.rb"
       end
 
       it { expect { click_button "Save" }.to_not change {Snippet.count} }

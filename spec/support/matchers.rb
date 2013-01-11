@@ -28,6 +28,16 @@ RSpec::Matchers.define :be_404_for do |user|
   end
 end
 
+RSpec::Matchers.define :include_module do |expected|
+  match do
+    described_class.included_modules.include?(expected)
+  end
+
+  failure_message_for_should do
+    "expected #{described_class} to include the #{expected} module"
+  end
+end
+
 module UrlAccess
   def url_allowed?(user, url)
     emulate_user(user)
@@ -49,11 +59,21 @@ module UrlAccess
 
   def emulate_user(user)
     user = case user
-           when :user then Factory(:user)
+           when :user then create(:user)
            when :visitor then nil
-           when :admin then Factory(:admin)
+           when :admin then create(:admin)
            else user
            end
     login_with(user) if user
+  end
+end
+
+# Extend shoulda-matchers
+module Shoulda::Matchers::ActiveModel
+  class EnsureLengthOfMatcher
+    # Shortcut for is_at_least and is_at_most
+    def is_within(range)
+      is_at_least(range.min) && is_at_most(range.max)
+    end
   end
 end

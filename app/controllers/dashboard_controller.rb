@@ -1,37 +1,84 @@
 class DashboardController < ApplicationController
   respond_to :html
 
+  before_filter :projects
+  before_filter :event_filter, only: :index
+
   def index
-    @projects = current_user.projects.all
+    @groups = current_user.authorized_groups
 
-    @active_projects = @projects.select(&:last_activity_date).sort_by(&:last_activity_date).reverse
+    @has_authorized_projects = @projects.count > 0
 
-    @merge_requests = MergeRequest.where("author_id = :id or assignee_id = :id", :id => current_user.id).opened.order("created_at DESC").limit(5)
+    @projects = case params[:scope]
+                when 'personal' then
+                  @projects.personal(current_user)
+                when 'joined' then
+                  @projects.joined(current_user)
+                else
+                  @projects
+                end
 
-    @user   = current_user
-    @issues = current_user.assigned_issues.opened.order("created_at DESC").limit(5)
-    @issues = @issues.includes(:author, :project)
+    @projects = @projects.page(params[:page]).per(30)
 
-    @events = Event.where(:project_id => @projects.map(&:id)).recent.limit(20)
-    @last_push = Event.where(:project_id => @projects.map(&:id)).recent.code_push.limit(1).first
+    @events = Event.in_projects(current_user.project_ids)
+    @events = @event_filter.apply_filter(@events)
+    @events = @events.limit(20).offset(params[:offset] || 0)
+
+    @last_push = current_user.recent_push
+
+    respond_to do |format|
+      format.html
+      format.js
+      format.atom { render layout: false }
+    end
   end
 
   # Get authored or assigned open merge requests
   def merge_requests
-    @projects = current_user.projects.all
-    @merge_requests = current_user.cared_merge_requests.order("created_at DESC").page(params[:page]).per(20)
+    @merge_requests = current_user.cared_merge_requests
+    @merge_requests = dashboard_filter(@merge_requests)
+    @merge_requests = @merge_requests.recent.page(params[:page]).per(20)
   end
 
   # Get only assigned issues
   def issues
-    @projects = current_user.projects.all
-    @user   = current_user
-    @issues = current_user.assigned_issues.opened.order("created_at DESC").page(params[:page]).per(20)
+    @issues = current_user.assigned_issues
+    @issues = dashboard_filter(@issues)
+    @issues = @issues.recent.page(params[:page]).per(20)
     @issues = @issues.includes(:author, :project)
 
     respond_to do |format|
       format.html
-      format.atom { render :layout => false }
+      format.atom { render layout: false }
+    end
+  end
+
+  protected
+
+  def projects
+    @projects = current_user.authorized_projects.sorted_by_activity
+  end
+
+  def event_filter
+    @event_filter ||= EventFilter.new(params[:event_filter])
+  end
+
+  def dashboard_filter items
+    if params[:project_id]
+      items = items.where(project_id: params[:project_id])
+    end
+
+    if params[:search].present?
+      items = items.search(params[:search])
+    end
+
+    case params[:status]
+    when 'closed'
+      items.closed
+    when 'all'
+      items
+    else
+      items.opened
     end
   end
 end

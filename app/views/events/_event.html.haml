@@ -1,8 +1,15 @@
-- if event.allowed?
-  .event_feed
-    - if event.issue? 
-      = render "events/event_issue", :event => event
-    - elsif event.merge_request? 
-      = render "events/event_merge_request", :event => event
-    - elsif event.push?
-      = render "events/event_push", :event => event
+- if event.proper?
+  %div.event-item
+    %span.cgray.right
+      #{time_ago_in_words(event.created_at)} ago.
+
+    = image_tag gravatar_icon(event.author_email), class: "avatar s24"
+
+    - if event.push?
+      = render "events/event/push", event: event
+      .clearfix
+    - elsif event.note?
+      = render "events/event/note", event: event
+    - else
+      = render "events/event/common", event: event
+

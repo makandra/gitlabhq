@@ -1,8 +1,25 @@
+# == Schema Information
+#
+# Table name: web_hooks
+#
+#  id         :integer          not null, primary key
+#  url        :string(255)
+#  project_id :integer
+#  created_at :datetime         not null
+#  updated_at :datetime         not null
+#  type       :string(255)      default("ProjectHook")
+#  service_id :integer
+#
+
 require 'spec_helper'
 
-describe WebHook do
+describe ProjectHook do
   describe "Associations" do
     it { should belong_to :project }
+  end
+
+  describe "Mass assignment" do
+    it { should_not allow_mass_assignment_of(:project_id) }
   end
 
   describe "Validations" do
@@ -23,43 +40,32 @@ describe WebHook do
 
   describe "execute" do
     before(:each) do
-      @webhook = Factory :web_hook
-      @project = Factory :project
-      @project.web_hooks << [@webhook]
+      @project_hook = create(:project_hook)
+      @project = create(:project)
+      @project.hooks << [@project_hook]
       @data = { before: 'oldrev', after: 'newrev', ref: 'ref'}
 
-      WebMock.stub_request(:post, @webhook.url)
+      WebMock.stub_request(:post, @project_hook.url)
     end
 
     it "POSTs to the web hook URL" do
-      @webhook.execute(@data)
-      WebMock.should have_requested(:post, @webhook.url).once
+      @project_hook.execute(@data)
+      WebMock.should have_requested(:post, @project_hook.url).once
     end
 
     it "POSTs the data as JSON" do
       json = @data.to_json
 
-      @webhook.execute(@data)
-      WebMock.should have_requested(:post, @webhook.url).with(body: json).once
+      @project_hook.execute(@data)
+      WebMock.should have_requested(:post, @project_hook.url).with(body: json).once
     end
 
     it "catches exceptions" do
       WebHook.should_receive(:post).and_raise("Some HTTP Post error")
 
       lambda {
-        @webhook.execute(@data)
-      }.should_not raise_error
+        @project_hook.execute(@data)
+      }.should raise_error
     end
   end
 end
-# == Schema Information
-#
-# Table name: web_hooks
-#
-#  id         :integer         not null, primary key
-#  url        :string(255)
-#  project_id :integer
-#  created_at :datetime
-#  updated_at :datetime
-#
-

@@ -1,38 +1,5 @@
 module CommitsHelper
-  def old_line_number(line, i)
-
-  end
-
-  def new_line_number(line, i)
-
-  end
-
-  def more_commits_link
-    offset = params[:offset] || 0
-    limit = params[:limit] || 100
-    link_to "More", project_commits_path(@project, :offset =>  offset.to_i + limit.to_i, :limit => limit),
-      :remote => true, :class => "lite_button vm", :style => "text-align:center; width:930px; ", :id => "more-commits-link"
-  end
-
-  def commit_msg_with_link_to_issues(project, message)
-    return '' unless message
-    out = ''
-    message.split(/(#[0-9]+)/m).each do |m|
-      if m =~ /(#([0-9]+))/m
-        begin
-          issue = project.issues.find($2)
-          out += link_to($1, project_issue_path(project, $2))
-        rescue
-          out += $1
-        end
-      else
-        out += m
-      end
-    end
-    preserve out
-  end
-
-  def diff_line_class(line)
+  def identification_type(line)
     if line[0] == "+"
       "new"
     elsif line[0] == "-"
@@ -42,7 +9,7 @@ module CommitsHelper
     end
   end
 
-  def build_line_code(line, index, line_new, line_old)
+  def build_line_anchor(index, line_new, line_old)
     "#{index}_#{line_old}_#{line_new}"
   end
 
@@ -51,27 +18,28 @@ module CommitsHelper
     line_new = 1
     type = nil
 
-    lines_arr = diff_arr
+    lines_arr = ::Gitlab::InlineDiff.processing diff_arr
     lines_arr.each do |line|
       next if line.match(/^\-\-\- \/dev\/null/)
       next if line.match(/^\+\+\+ \/dev\/null/)
       next if line.match(/^\-\-\- a/)
       next if line.match(/^\+\+\+ b/)
 
-      full_line = html_escape(line.gsub(/\n/, '')).force_encoding("UTF-8")
+      full_line = html_escape(line.gsub(/\n/, ''))
+      full_line = ::Gitlab::InlineDiff.replace_markers full_line
 
       if line.match(/^@@ -/)
         type = "match"
 
         line_old = line.match(/\-[0-9]*/)[0].to_i.abs rescue 0
         line_new = line.match(/\+[0-9]*/)[0].to_i.abs rescue 0
-                
-        next if line_old == 1 && line_new == 1
+
+        next if line_old == 1 && line_new == 1 #top of file
         yield(full_line, type, nil, nil, nil)
         next
       else
-        type = diff_line_class(line)
-        line_code = build_line_code(line, index, line_new, line_old)
+        type = identification_type(line)
+        line_code = build_line_anchor(index, line_new, line_old)
         yield(full_line, type, line_code, line_new, line_old)
       end
 
@@ -84,6 +52,22 @@ module CommitsHelper
         line_new += 1
         line_old += 1
       end
+    end
+  end
+
+  def image_diff_class(diff)
+    if diff.deleted_file
+      "diff_removed"
+    elsif diff.new_file
+      "diff_added"
+    else
+      nil
+    end
+  end
+
+  def commit_to_html commit
+    if commit.model
+      escape_javascript(render 'commits/commit', commit: commit)
     end
   end
 end

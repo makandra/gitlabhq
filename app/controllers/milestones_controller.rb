@@ -1,28 +1,23 @@
-class MilestonesController < ApplicationController
-  before_filter :authenticate_user!
-  before_filter :project
+class MilestonesController < ProjectResourceController
   before_filter :module_enabled
-  before_filter :milestone, :only => [:edit, :update, :destroy, :show]
-  layout "project"
-
-  # Authorize
-  before_filter :add_project_abilities
+  before_filter :milestone, only: [:edit, :update, :destroy, :show]
 
   # Allow read any milestone
   before_filter :authorize_read_milestone!
 
   # Allow admin milestone
-  before_filter :authorize_admin_milestone!, :except => [:index, :show]
+  before_filter :authorize_admin_milestone!, except: [:index, :show]
 
   respond_to :html
 
   def index
-    @milestones = case params[:f].to_i
-                  when 1; @project.milestones
-                  else @project.milestones.active
+    @milestones = case params[:f]
+                  when 'all'; @project.milestones.order("closed, due_date DESC")
+                  when 'closed'; @project.milestones.closed.order("due_date DESC")
+                  else @project.milestones.active.order("due_date ASC")
                   end
 
-    @milestones = @milestones.includes(:project).order("due_date")
+    @milestones = @milestones.includes(:project)
     @milestones = @milestones.page(params[:page]).per(20)
   end
 
@@ -36,6 +31,10 @@ class MilestonesController < ApplicationController
   end
 
   def show
+    @issues = @milestone.issues
+    @users = UserDecorator.decorate(@milestone.participants)
+    @merge_requests = @milestone.merge_requests
+
     respond_to do |format|
       format.html
       format.js
@@ -44,6 +43,7 @@ class MilestonesController < ApplicationController
 
   def create
     @milestone = @project.milestones.new(params[:milestone])
+    @milestone.author_id_of_changes = current_user.id
 
     if @milestone.save
       redirect_to project_milestone_path(@project, @milestone)
@@ -53,11 +53,11 @@ class MilestonesController < ApplicationController
   end
 
   def update
-    @milestone.update_attributes(params[:milestone])
+    @milestone.update_attributes(params[:milestone].merge(author_id_of_changes: current_user.id))
 
     respond_to do |format|
       format.js
-      format.html do 
+      format.html do
         if @milestone.valid?
           redirect_to [@project, @milestone]
         else
@@ -74,7 +74,7 @@ class MilestonesController < ApplicationController
 
     respond_to do |format|
       format.html { redirect_to project_milestones_path }
-      format.js { render :nothing => true }
+      format.js { render nothing: true }
     end
   end
 
