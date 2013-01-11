@@ -32,7 +32,7 @@
             %span Commit author
 
         = label_tag :notify do
-          = check_box_tag :notify, 1, @note.noteable_type != "Commit" && @note.noteable_type != 'MergeRequest'
+          = check_box_tag :notify, 1, false
           %span Project team
       .span5.attachments
         %h6.left Attachment:
