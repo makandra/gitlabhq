@@ -7,9 +7,9 @@ describe "MergeRequests" do
 
   before do
     login_as :user
-    project.add_access(@user, :read, :write)
-    project.add_access(assignee, :read, :write)
-    project.add_access(team_member, :read, :write)
+    project.team << [@user, :master]
+    project.team << [assignee, :master]
+    project.team << [team_member, :master]
     @merge_request = create :merge_request,
       :author => @user,
       :assignee => assignee,
@@ -25,14 +25,12 @@ describe "MergeRequests" do
     end
 
     it 'should only send a mail to the assignee' do
-      with_resque do
-        Note.observers.enable :note_observer do
-          click_button "Add Comment"
-        end
+      Note.observers.enable :note_observer do
+        click_button "Add Comment"
       end
       ActionMailer::Base.deliveries.should have(1).mail
       email = ActionMailer::Base.deliveries.last
-      email.subject.should have_content("GitLab | note for merge request")
+      email.subject.should =~ /GitLab | project\d+ | note for merge request/
       email.to.should include(assignee.email)
     end
 
@@ -41,10 +39,8 @@ describe "MergeRequests" do
         :project => project,
         :noteable => @merge_request,
         :author => team_member
-      with_resque do
-        Note.observers.enable :note_observer do
-          click_button "Add Comment"
-        end
+      Note.observers.enable :note_observer do
+        click_button "Add Comment"
       end
       ActionMailer::Base.deliveries.should have(2).mail
       emails = ActionMailer::Base.deliveries
@@ -58,10 +54,8 @@ describe "MergeRequests" do
       visit project_merge_request_path(project, @merge_request.id)
       fill_in "note_note", :with => "My note" 
       check "notify"
-      with_resque do
-        Note.observers.enable :note_observer do
-          click_button "Add Comment"
-        end
+      Note.observers.enable :note_observer do
+        click_button "Add Comment"
       end
     end
 

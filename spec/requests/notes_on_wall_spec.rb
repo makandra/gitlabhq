@@ -21,7 +21,7 @@ describe "On the project wall", js: true do
     it { within(".js-main-target-form") { should_not have_link("Cancel") } }
 
     # notifiactions
-    it { within(".js-main-target-form") { should have_checked_field("Notify team via email") } }
+    it { within(".js-main-target-form") { should_not have_checked_field("Notify team via email") } }
     it { within(".js-main-target-form") { should_not have_checked_field("Notify commit author") } }
     it { within(".js-main-target-form") { should_not have_unchecked_field("Notify commit author") } }
 

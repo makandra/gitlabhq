@@ -48,10 +48,11 @@ describe NoteObserver do
       note.stub(:notify_involved).and_return(true)
       note.stub_chain(:noteable, :involved_users).and_return(:involved_users)
       subject.should_receive(:notify_users).with(note, :involved_users)
+      subject.after_create(note)
     end
 
     it 'does not notify the author of a commit when not flagged to notify the author' do
-      notify.should_not_receive(:note_commit_email)
+      notify.should_not_receive(:notify_users)
       subject.after_create(note)
     end
 
