@@ -26,8 +26,13 @@
 
     .note-form-option
       = label_tag :notify do
-        = check_box_tag :notify, 1, !@note.for_commit?
+        = check_box_tag :notify, 1, false
         %span.light Notify team via email
+
+      - if @note.for_merge_request?
+        = label_tag :notify_involved do
+          = check_box_tag :notify_involved, 1, true
+          %span Users involved
 
       .js-notify-commit-author
         = label_tag :notify_author do
