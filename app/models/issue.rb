@@ -17,15 +17,12 @@
 #
 
 class Issue < ActiveRecord::Base
-  include IssueCommonality
-  include Votes
+  include Issuable
 
   attr_accessible :title, :assignee_id, :closed, :position, :description,
                   :milestone_id, :label_list, :author_id_of_changes
 
   acts_as_taggable_on :labels
-
-  validates :description, length: { within: 0..2000 }
 
   def self.open_for(user)
     opened.assigned(user)

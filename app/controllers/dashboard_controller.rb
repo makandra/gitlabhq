@@ -1,26 +1,17 @@
 class DashboardController < ApplicationController
   respond_to :html
 
-  before_filter :projects
-  before_filter :event_filter, only: :index
+  before_filter :load_projects
+  before_filter :event_filter, only: :show
 
-  def index
+  def show
     @groups = current_user.authorized_groups
-
     @has_authorized_projects = @projects.count > 0
+    @teams = current_user.authorized_teams
+    @projects_count = @projects.count
+    @projects = @projects.limit(20)
 
-    @projects = case params[:scope]
-                when 'personal' then
-                  @projects.personal(current_user)
-                when 'joined' then
-                  @projects.joined(current_user)
-                else
-                  @projects
-                end
-
-    @projects = @projects.page(params[:page]).per(30)
-
-    @events = Event.in_projects(current_user.project_ids)
+    @events = Event.in_projects(current_user.authorized_projects.pluck(:id))
     @events = @event_filter.apply_filter(@events)
     @events = @events.limit(20).offset(params[:offset] || 0)
 
@@ -33,17 +24,30 @@ class DashboardController < ApplicationController
     end
   end
 
+  def projects
+    @projects = case params[:scope]
+                when 'personal' then
+                  @projects.personal(current_user)
+                when 'joined' then
+                  @projects.joined(current_user)
+                else
+                  @projects
+                end
+
+    @projects = @projects.page(params[:page]).per(30)
+  end
+
   # Get authored or assigned open merge requests
   def merge_requests
     @merge_requests = current_user.cared_merge_requests
-    @merge_requests = dashboard_filter(@merge_requests)
+    @merge_requests = FilterContext.new(@merge_requests, params).execute
     @merge_requests = @merge_requests.recent.page(params[:page]).per(20)
   end
 
   # Get only assigned issues
   def issues
     @issues = current_user.assigned_issues
-    @issues = dashboard_filter(@issues)
+    @issues = FilterContext.new(@issues, params).execute
     @issues = @issues.recent.page(params[:page]).per(20)
     @issues = @issues.includes(:author, :project)
 
@@ -55,30 +59,12 @@ class DashboardController < ApplicationController
 
   protected
 
-  def projects
+  def load_projects
     @projects = current_user.authorized_projects.sorted_by_activity
   end
 
   def event_filter
-    @event_filter ||= EventFilter.new(params[:event_filter])
-  end
-
-  def dashboard_filter items
-    if params[:project_id]
-      items = items.where(project_id: params[:project_id])
-    end
-
-    if params[:search].present?
-      items = items.search(params[:search])
-    end
-
-    case params[:status]
-    when 'closed'
-      items.closed
-    when 'all'
-      items
-    else
-      items.opened
-    end
+    filters = cookies['event_filter'].split(',') if cookies['event_filter']
+    @event_filter ||= EventFilter.new(filters)
   end
 end

@@ -3,11 +3,11 @@ require 'spec_helper'
 describe MergeRequestsController do
   let(:project) { create(:project) }
   let(:user)    { create(:user) }
-  let(:merge_request) { create(:merge_request_with_diffs, project: project) }
+  let(:merge_request) { create(:merge_request_with_diffs, project: project, target_branch: "bcf03b5d~3", source_branch: "bcf03b5d") }
 
   before do
     sign_in(user)
-    project.add_access(user, :read, :admin)
+    project.team << [user, :master]
     MergeRequestsController.any_instance.stub(validates_merge_request: true)
   end
 

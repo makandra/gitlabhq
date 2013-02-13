@@ -4,7 +4,7 @@ class AdminActiveTab < Spinach::FeatureSteps
   include SharedActiveTab
 
   Then 'the active main tab should be Home' do
-    ensure_active_main_tab('Stats')
+    ensure_active_main_tab('Home')
   end
 
   Then 'the active main tab should be Projects' do
@@ -28,6 +28,6 @@ class AdminActiveTab < Spinach::FeatureSteps
   end
 
   Then 'the active main tab should be Resque' do
-    ensure_active_main_tab('Resque')
+    ensure_active_main_tab('Background Jobs')
   end
 end

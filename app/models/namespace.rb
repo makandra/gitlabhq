@@ -52,7 +52,7 @@ class Namespace < ActiveRecord::Base
 
   def ensure_dir_exist
     unless dir_exists?
-      system("mkdir -m 770 #{namespace_full_path}")
+      FileUtils.mkdir( namespace_full_path, mode: 0770 )
     end
   end
 
@@ -72,10 +72,18 @@ class Namespace < ActiveRecord::Base
         raise "Already exists"
       end
 
-      if system("mv #{old_path} #{new_path}")
+
+      begin
+        # Remove satellite when moving repo
+        if path_was.present?
+          satellites_path = File.join(Gitlab.config.satellites.path, path_was)
+          FileUtils.rm_r( satellites_path, force: true )
+        end
+
+        FileUtils.mv( old_path, new_path )
         send_update_instructions
         @require_update_gitolite = true
-      else
+      rescue Exception => e
         raise "Namespace move error #{old_path} #{new_path}"
       end
     end
@@ -88,7 +96,7 @@ class Namespace < ActiveRecord::Base
 
   def rm_dir
     dir_path = File.join(Gitlab.config.gitolite.repos_path, path)
-    system("rm -rf #{dir_path}")
+    FileUtils.rm_r( dir_path, force: true )
   end
 
   def send_update_instructions

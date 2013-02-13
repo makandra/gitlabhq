@@ -57,21 +57,24 @@
   
   BranchGraph.prototype.collectColors = function(){
     for (var k = 0; k < this.mspace; k++) {
-      this.colors.push(Raphael.getColor());
+      this.colors.push(Raphael.getColor(.8));
+      // Skipping a few colors in the spectrum to get more contrast between colors
+      Raphael.getColor();Raphael.getColor();
     }
   };
 
   BranchGraph.prototype.buildGraph = function(){
     var graphWidth = $(this.element).width()
-      , ch = this.mspace * 20 + 20
-      , cw = Math.max(graphWidth, this.mtime * 20 + 20)
+      , ch = this.mspace * 20 + 100
+      , cw = Math.max(graphWidth, this.mtime * 20 + 260)
       , r = Raphael(this.element.get(0), cw, ch)
       , top = r.set()
       , cuday = 0
       , cumonth = ""
       , offsetX = 20
       , offsetY = 60
-      , barWidth = Math.max(graphWidth, this.dayCount * 20 + 80);
+      , barWidth = Math.max(graphWidth, this.dayCount * 20 + 320)
+      , scrollLeft = cw;
     
     this.raphael = r;
     
@@ -83,7 +86,7 @@
         if(cuday != this.days[mm][0]){
           // Dates
           r.text(offsetX + mm * 20, 31, this.days[mm][0]).attr({
-            font: "12px Monaco, Arial",
+            font: "12px Monaco, monospace",
             fill: "#DDD"
           });
           cuday = this.days[mm][0];
@@ -91,7 +94,7 @@
         if(cumonth != this.days[mm][1]){
           // Months
           r.text(offsetX + mm * 20, 11, this.days[mm][1]).attr({
-            font: "12px Monaco, Arial", 
+            font: "12px Monaco, monospace", 
             fill: "#EEE"
           });
           cumonth = this.days[mm][1];
@@ -101,51 +104,53 @@
     
     for (i = 0; i < this.commitCount; i++) {
       var x = offsetX + 20 * this.commits[i].time
-        , y = offsetY + 20 * this.commits[i].space;
+        , y = offsetY + 10 * this.commits[i].space
+        , c
+        , ps;
+      
+      // Draw dot
       r.circle(x, y, 3).attr({
         fill: this.colors[this.commits[i].space], 
         stroke: "none"
       });
-      if (this.commits[i].refs != null && this.commits[i].refs != "") {
-        var longrefs = this.commits[i].refs
-          , shortrefs = this.commits[i].refs;
-        if (shortrefs.length > 15){
-          shortrefs = shortrefs.substr(0,13) + "...";
-        }
-        var t = r.text(x+5, y+8, shortrefs).attr({
-          font: "12px Monaco, Arial", 
-          fill: "#666",
-          title: longrefs, 
-          cursor: "pointer", 
-          rotation: "90"
-        });
-
-        var textbox = t.getBBox();
-        t.translate(textbox.height/-4, textbox.width/2);
-      }
-      var c;
+      
+      // Draw lines
       for (var j = 0, jj = this.commits[i].parents.length; j < jj; j++) {
         c = this.preparedCommits[this.commits[i].parents[j][0]];
+        ps = this.commits[i].parent_spaces[j];
         if (c) {
           var cx = offsetX + 20 * c.time
-            , cy = offsetY + 20 * c.space;
-          if (c.space == this.commits[i].space) {
+            , cy = offsetY + 10 * c.space
+            , psy = offsetY + 10 * ps;
+          if (c.space == this.commits[i].space && c.space == ps) {
             r.path([
               "M", x, y,
-              "L", x - 20 * (c.time + 1), y
+              "L", cx, cy
             ]).attr({
               stroke: this.colors[c.space], 
               "stroke-width": 2
             });
 
           } else if (c.space < this.commits[i].space) {
-            r.path(["M", x - 5, y + .0001, "l-5-2,0,4,5,-2C", x - 5, y, x - 17, y + 2, x - 20, y - 5, "L", cx, y - 5, cx, cy])
+            r.path([
+                "M", x - 5, y,
+                "l-5-2,0,4,5,-2",
+                "L", x - 10, y,
+                "L", x - 15, psy,
+                "L", cx + 5, psy,
+                "L", cx, cy])
             .attr({
               stroke: this.colors[this.commits[i].space], 
               "stroke-width": 2
             });
           } else {
-            r.path(["M", x - 3, y + 6, "l-4,3,4,2,0,-5L", x - 10, y + 20, "L", x - 10, cy, cx, cy])
+            r.path([
+                "M", x - 3, y + 6,
+                "l-4,3,4,2,0,-5",
+                "L", x - 5, y + 10,
+                "L", x - 10, psy,
+                "L", cx + 5, psy,
+                "L", cx, cy])
             .attr({
               stroke: this.colors[c.space], 
               "stroke-width": 2
@@ -153,10 +158,21 @@
           }
         }
       }
+      
+      if (this.commits[i].refs) {
+        this.appendLabel(x, y, this.commits[i].refs);
+
+        // The main branch is displayed in the center.
+        re = new RegExp('(^| )' + this.options.ref + '( |$)');
+        if (this.commits[i].refs.match(re)) {
+          scrollLeft = x - graphWidth / 2;
+        }
+      }
+      
       this.appendAnchor(top, this.commits[i], x, y);
     }
     top.toFront();
-    this.element.scrollLeft(cw);
+    this.element.scrollLeft(scrollLeft);
     this.bindEvents();
   };
   
@@ -206,7 +222,57 @@
     });
   };
   
-  BranchGraph.prototype.appendAnchor = function(top, c, x, y) {
+  BranchGraph.prototype.appendLabel = function(x, y, refs){
+    var r = this.raphael
+      , shortrefs = refs
+      , text, textbox, rect;
+    
+    if (shortrefs.length > 17){
+      // Truncate if longer than 15 chars
+      shortrefs = shortrefs.substr(0,15) + "…";
+    }
+    
+    text = r.text(x+5, y+8 + 10, shortrefs).attr({
+      font: "10px Monaco, monospace", 
+      fill: "#FFF",
+      title: refs
+    });
+
+    textbox = text.getBBox();
+    text.transform([
+      't', textbox.height/-4, textbox.width/2 + 5,
+      'r90'
+    ]);
+    
+    // Create rectangle based on the size of the textbox
+    rect = r.rect(x, y, textbox.width + 15, textbox.height + 5, 4).attr({
+      "fill": "#000",
+      "fill-opacity": .7,
+      "stroke": "none"
+    });
+    
+    triangle = r.path([
+      'M', x, y + 5,
+      'L', x + 4, y + 15,
+      'L', x - 4, y + 15,
+      'Z'
+    ]).attr({
+      "fill": "#000",
+      "fill-opacity": .7,
+      "stroke": "none"
+    });
+    
+    // Rotate and reposition rectangle over text
+    rect.transform([
+      'r', 90, x, y,
+      't', 15, -9
+    ]);
+    
+    // Set text to front
+    text.toFront();
+  };
+  
+  BranchGraph.prototype.appendAnchor = function(top, commit, x, y) {
     var r = this.raphael
       , options = this.options
       , anchor;
@@ -216,16 +282,13 @@
       cursor: "pointer"
     })
     .click(function(){
-      window.location = options.commit_url.replace('%s', c.id);
+      window.open(options.commit_url.replace('%s', commit.id), '_blank');
     })
     .hover(function(){
-      var text = r.text(100, 100, c.author + "\n \n" + c.id + "\n \n" + c.message).attr({
-        fill: "#fff"
-      });
-      this.popup = r.tooltip(x, y + 5, text, 0);
-      top.push(this.popup.insertBefore(this));
+      this.tooltip = r.commitTooltip(x, y + 5, commit);
+      top.push(this.tooltip.insertBefore(this));
     }, function(){
-      this.popup && this.popup.remove() && delete this.popup;
+      this.tooltip && this.tooltip.remove() && delete this.tooltip;
     });
     top.push(anchor);
   };
@@ -233,23 +296,81 @@
   this.BranchGraph = BranchGraph;
   
 }(this);
-Raphael.fn.tooltip = function (x, y, set, dir, size) {
-  dir = dir == null ? 2 : dir;
-  size = size || 5;
-  x = Math.round(x);
-  y = Math.round(y);
-  var mmax = Math.max
-    , bb = set.getBBox()
-    , w = Math.round(bb.width / 2)
-    , h = Math.round(bb.height / 2)
-    , dx = [0, w + size * 2, 0, -w - size * 2]
-    , dy = [-h * 2 - size * 3, -h - size, 0, -h - size]
-    , p = ["M", x - dx[dir], y - dy[dir], "l", -size, (dir == 2) * -size, -mmax(w - size, 0), 0, "a", size, size, 0, 0, 1, -size, -size,
-          "l", 0, -mmax(h - size, 0), (dir == 3) * -size, -size, (dir == 3) * size, -size, 0, -mmax(h - size, 0), "a", size, size, 0, 0, 1, size, -size,
-          "l", mmax(w - size, 0), 0, size, !dir * -size, size, !dir * size, mmax(w - size, 0), 0, "a", size, size, 0, 0, 1, size, size,
-          "l", 0, mmax(h - size, 0), (dir == 1) * size, size, (dir == 1) * -size, size, 0, mmax(h - size, 0), "a", size, size, 0, 0, 1, -size, size,
-          "l", -mmax(w - size, 0), 0, "z"].join(",")
-    , xy = [{x: x, y: y + size * 2 + h}, {x: x - size * 2 - w, y: y}, {x: x, y: y - size * 2 - h}, {x: x + size * 2 + w, y: y}][dir];
-  set.translate(xy.x - w - bb.x, xy.y - h - bb.y);
-  return this.set(this.path(p).attr({fill: "#234", stroke: "none"}).insertBefore(set.node ? set : set[0]), set);
+Raphael.fn.commitTooltip = function(x, y, commit){
+  var nameText, idText, messageText
+    , boxWidth = 300
+    , boxHeight = 200;
+  
+  nameText = this.text(x, y + 10, commit.author.name);
+  idText = this.text(x, y + 35, commit.id);
+  messageText = this.text(x, y + 50, commit.message);
+  
+  textSet = this.set(nameText, idText, messageText).attr({
+    "text-anchor": "start",
+    "font": "12px Monaco, monospace"
+  });
+  
+  nameText.attr({
+    "font": "14px Arial",
+    "font-weight": "bold"
+  });
+  
+  idText.attr({
+    "fill": "#AAA"
+  });
+  
+  textWrap(messageText, boxWidth - 50);
+
+  var rect = this.rect(x - 10, y - 10, boxWidth, 100, 4).attr({
+    "fill": "#FFF",
+    "stroke": "#000",
+    "stroke-linecap": "round",
+    "stroke-width": 2
+  });
+  var tooltip = this.set(rect, textSet);
+
+  rect.attr({
+    "height" : tooltip.getBBox().height + 10,
+    "width" : tooltip.getBBox().width + 10
+  });
+  
+  tooltip.transform([
+    't', 20, 20
+  ]);
+  
+  return tooltip;
 };
+
+function textWrap(t, width) {
+  var content = t.attr("text");
+  var abc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  t.attr({
+    "text" : abc
+  });
+  var letterWidth = t.getBBox().width / abc.length;
+  
+  t.attr({
+    "text" : content
+  });
+
+  var words = content.split(" ");
+  var x = 0, s = [];
+  for ( var i = 0; i < words.length; i++) {
+
+    var l = words[i].length;
+    if (x + (l * letterWidth) > width) {
+        s.push("\n");
+        x = 0;
+    }
+    x += l * letterWidth;
+    s.push(words[i] + " ");
+  }
+  t.attr({
+    "text" : s.join("")
+  });
+  var b = t.getBBox()
+    , h = Math.abs(b.y2) - Math.abs(b.y) + 1;
+  t.attr({
+    "y": b.y + h
+  });
+}

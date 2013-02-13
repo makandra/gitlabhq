@@ -1,23 +1,28 @@
 %h3.page_title
-  Users (#{@admin_users.count})
-  = link_to 'New User', new_admin_user_path, class: "btn small right"
+  Users
+  = link_to 'New User', new_admin_user_path, class: "btn btn-small pull-right"
 %br
 
 = form_tag admin_users_path, method: :get, class: 'form-inline' do
   = text_field_tag :name, params[:name], class: "xlarge"
-  = submit_tag "Search", class: "btn submit primary"
+  = submit_tag "Search", class: "btn submit btn-primary"
 %ul.nav.nav-tabs
   %li{class: "#{'active' unless params[:filter]}"}
-    = link_to "Active", admin_users_path
+    = link_to admin_users_path do
+      Active
+      %span.badge= User.active.count
   %li{class: "#{'active' if params[:filter] == "admins"}"}
     = link_to admin_users_path(filter: "admins") do
       Admins
+      %span.badge= User.admins.count
   %li{class: "#{'active' if params[:filter] == "blocked"}"}
     = link_to admin_users_path(filter: "blocked") do
       Blocked
+      %span.badge= User.blocked.count
   %li{class: "#{'active' if params[:filter] == "wop"}"}
     = link_to admin_users_path(filter: "wop") do
       Without projects
+      %span.badge= User.without_projects.count
 
 %table
   %thead
@@ -39,15 +44,15 @@
       %td= user.username
       %td= user.email
       %td= user.users_projects.count
-      %td= link_to 'Edit', edit_admin_user_path(user), id: "edit_#{dom_id(user)}", class: "btn small"
+      %td= link_to 'Edit', edit_admin_user_path(user), id: "edit_#{dom_id(user)}", class: "btn btn-small"
       %td.bgred
         - if user == current_user
           %span.cred It's you!
         - else
           - if user.blocked
-            = link_to 'Unblock', unblock_admin_user_path(user), method: :put, class: "btn small success"
+            = link_to 'Unblock', unblock_admin_user_path(user), method: :put, class: "btn btn-small success"
           - else
-            = link_to 'Block', block_admin_user_path(user), confirm: 'USER WILL BE BLOCKED! Are you sure?', method: :put, class: "btn small danger"
-          = link_to 'Destroy', [:admin, user], confirm: "USER #{user.name} WILL BE REMOVED! Are you sure?", method: :delete, class: "btn small danger"
+            = link_to 'Block', block_admin_user_path(user), confirm: 'USER WILL BE BLOCKED! Are you sure?', method: :put, class: "btn btn-small btn-remove"
+          = link_to 'Destroy', [:admin, user], confirm: "USER #{user.name} WILL BE REMOVED! Are you sure?", method: :delete, class: "btn btn-small btn-remove"
 
 = paginate @admin_users, theme: "admin"

@@ -21,6 +21,14 @@ module SharedPaths
     visit merge_requests_group_path(current_group)
   end
 
+  When 'I visit group people page' do
+    visit people_group_path(current_group)
+  end
+
+  When 'I visit group settings page' do
+    visit edit_group_path(current_group)
+  end
+
   # ----------------------------------------
   # Dashboard
   # ----------------------------------------
@@ -29,12 +37,16 @@ module SharedPaths
     visit dashboard_path
   end
 
+  Given 'I visit dashboard projects page' do
+    visit projects_dashboard_path
+  end
+
   Given 'I visit dashboard issues page' do
-    visit dashboard_issues_path
+    visit issues_dashboard_path
   end
 
   Given 'I visit dashboard merge requests page' do
-    visit dashboard_merge_requests_path
+    visit merge_requests_dashboard_path
   end
 
   Given 'I visit dashboard search page' do
@@ -101,6 +113,10 @@ module SharedPaths
     visit admin_groups_path
   end
 
+  When 'I visit admin teams page' do
+    visit admin_teams_path
+  end
+
   # ----------------------------------------
   # Generic Project
   # ----------------------------------------
@@ -110,15 +126,15 @@ module SharedPaths
   end
 
   Given "I visit my project's files page" do
-    visit project_tree_path(@project, @project.root_ref)
+    visit project_tree_path(@project, root_ref)
   end
 
   Given "I visit my project's commits page" do
-    visit project_commits_path(@project, @project.root_ref, {limit: 5})
+    visit project_commits_path(@project, root_ref, {limit: 5})
   end
 
   Given "I visit my project's commits page for a specific path" do
-    visit project_commits_path(@project, @project.root_ref + "/app/models/project.rb", {limit: 5})
+    visit project_commits_path(@project, root_ref + "/app/models/project.rb", {limit: 5})
   end
 
   Given 'I visit my project\'s commits stats page' do
@@ -129,7 +145,7 @@ module SharedPaths
     # Stub Graph::JsonBuilder max_size to speed up test (10 commits vs. 650)
     Gitlab::Graph::JsonBuilder.stub(max_count: 10)
 
-    visit graph_project_path(@project)
+    visit project_graph_path(@project, root_ref)
   end
 
   Given "I visit my project's issues page" do
@@ -161,6 +177,11 @@ module SharedPaths
     visit project_path(project)
   end
 
+  When 'I visit edit project "Shop" page' do
+    project = Project.find_by_name("Shop")
+    visit edit_project_path(project)
+  end
+
   Given 'I visit project branches page' do
     visit branches_project_repository_path(@project)
   end
@@ -170,7 +191,7 @@ module SharedPaths
   end
 
   Given 'I visit project commits page' do
-    visit project_commits_path(@project, @project.root_ref, {limit: 5})
+    visit project_commits_path(@project, root_ref, {limit: 5})
   end
 
   Given 'I visit project commits page for stable branch' do
@@ -178,7 +199,7 @@ module SharedPaths
   end
 
   Given 'I visit project source page' do
-    visit project_tree_path(@project, @project.root_ref)
+    visit project_tree_path(@project, root_ref)
   end
 
   Given 'I visit blob file from repo' do
@@ -215,6 +236,11 @@ module SharedPaths
     visit project_merge_request_path(mr.project, mr)
   end
 
+  Given 'I visit merge request page "Bug NS-05"' do
+    mr = MergeRequest.find_by_title("Bug NS-05")
+    visit project_merge_request_path(mr.project, mr)
+  end
+
   And 'I visit project "Shop" merge requests page' do
     visit project_merge_requests_path(Project.find_by_name("Shop"))
   end
@@ -235,5 +261,9 @@ module SharedPaths
 
   Given 'I visit project wiki page' do
     visit project_wiki_path(@project, :index)
+  end
+
+  def root_ref
+    @project.repository.root_ref
   end
 end

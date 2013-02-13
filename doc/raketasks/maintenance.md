@@ -1,23 +1,10 @@
-### Setup production application
-
-Runs the following rake tasks:
-
-* db:setup (Create the database, load the schema, and initialize with the seed data)
-* db:seed_fu (Loads seed data for the current environment.)
-* gitlab:app:enable_automerge (see "Features")
-
-```
-bundle exec rake gitlab:app:setup
-```
-
-
 ### Gather information about GitLab and the system it runs on
 
 This command gathers information about your GitLab installation and the System
 it runs on. These may be useful when asking for help or reporting issues.
 
 ```
-bundle exec rake gitlab:env:info
+bundle exec rake gitlab:env:info RAILS_ENV=production
 ```
 
 Example output:
@@ -68,7 +55,7 @@ It will check that each component was setup according to the installation guide 
 You may also have a look at our [Trouble Shooting Guide](https://github.com/gitlabhq/gitlab-public-wiki/wiki/Trouble-Shooting-Guide).
 
 ```
-bundle exec rake gitlab:check
+bundle exec rake gitlab:check RAILS_ENV=production
 ```
 
 Example output:
@@ -94,7 +81,7 @@ Config directory owned by git:git? ... yes
 Config directory access is drwxr-x---? ... yes
 Repo base directory exists? ... yes
 Repo base owned by git:git? ... yes
-Repo base access is drwsrws---? ... yes
+Repo base access is drwxrws---? ... yes
 Can clone gitolite-admin? ... yes
 Can commit to gitolite-admin? ... yes
 post-receive hook exists? ... yes
@@ -145,7 +132,7 @@ This will create satellite repos for all your projects.
 If necessary, remove the `tmp/repo_satellites` directory and rerun the command below.
 
 ```
-bundle exec rake gitlab:satellites:create
+bundle exec rake gitlab:satellites:create RAILS_ENV=production
 ```
 
 
@@ -154,7 +141,7 @@ bundle exec rake gitlab:satellites:create
 This will send all users ssh public keys to gitolite and grant them access (based on their permission) to their projects.
 
 ```
-bundle exec rake gitlab:gitolite:update_keys
+bundle exec rake gitlab:gitolite:update_keys RAILS_ENV=production
 ```
 
 
@@ -163,7 +150,7 @@ bundle exec rake gitlab:gitolite:update_keys
 This makes sure that all projects are present in gitolite and can be accessed.
 
 ```
-bundle exec rake gitlab:gitolite:update_repos
+bundle exec rake gitlab:gitolite:update_repos RAILS_ENV=production
 ```
 
 ### Import bare repositories into GitLab project instance

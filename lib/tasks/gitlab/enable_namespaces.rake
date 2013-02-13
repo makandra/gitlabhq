@@ -87,28 +87,27 @@ namespace :gitlab do
 
       group = project.group
 
-      puts "\n"
-      print " * #{project.name}: "
+      print "#{project.name_with_namespace.yellow} ... "
 
       new_path = File.join(git_path, project.path_with_namespace + '.git')
 
       if File.exists?(new_path)
-        print "ok. already at #{new_path}".cyan
+        puts "already at #{new_path}".green
         next
       end
 
       old_path = File.join(git_path, project.path + '.git')
 
       unless File.exists?(old_path)
-        print "missing. not found at #{old_path}".red
+        puts "couldn't find it at #{old_path}".red
         next
       end
 
       begin
         Gitlab::ProjectMover.new(project, '', group.path).execute
-        print "ok. Moved to #{new_path}".green
+        puts "moved to #{new_path}".green
       rescue
-        print "Failed moving to #{new_path}".red
+        puts "failed moving to #{new_path}".red
       end
     end
 

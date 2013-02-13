@@ -3,7 +3,7 @@ module Gitlab
   class Notes < Grape::API
     before { authenticate! }
 
-    NOTEABLE_TYPES = [Issue, Snippet]
+    NOTEABLE_TYPES = [Issue, MergeRequest, Snippet]
 
     resource :projects do
       # Get a list of project wall notes
@@ -13,7 +13,7 @@ module Gitlab
       # Example Request:
       #   GET /projects/:id/notes
       get ":id/notes" do
-        @notes = user_project.common_notes
+        @notes = user_project.notes.common
         present paginate(@notes), with: Entities::Note
       end
 
@@ -25,7 +25,7 @@ module Gitlab
       # Example Request:
       #   GET /projects/:id/notes/:note_id
       get ":id/notes/:note_id" do
-        @note = user_project.common_notes.find(params[:note_id])
+        @note = user_project.notes.common.find(params[:note_id])
         present @note, with: Entities::Note
       end
 

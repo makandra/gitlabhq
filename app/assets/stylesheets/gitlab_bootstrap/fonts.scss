@@ -1,7 +1,7 @@
-@font-face{ 
-  font-family: Korolev; 
-  src: font-url('korolev-medium-compressed.otf');
+@font-face{
+  font-family: Yanone;
+  src: font-url('YanoneKaffeesatz-Light.ttf');
 }
 
 /** Typo **/
-$monospace: 'Menlo', 'Liberation Mono', 'Consolas', 'Courier New', 'andale mono', 'lucida console', monospace;
+$monospace_font: 'Menlo', 'Liberation Mono', 'Consolas', 'Courier New', 'andale mono', 'lucida console', monospace;

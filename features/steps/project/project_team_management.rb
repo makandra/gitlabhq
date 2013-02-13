@@ -24,7 +24,7 @@ class ProjectTeamManagement < Spinach::FeatureSteps
       select user.name, :from => "user_ids"
       select "Reporter", :from => "project_access"
     end
-    click_button "Save"
+    click_button "Add users"
   end
 
   Then 'I should see "Mike" in team list as "Reporter"' do
@@ -84,18 +84,18 @@ class ProjectTeamManagement < Spinach::FeatureSteps
   And '"Sam" is "Shop" developer' do
     user = User.find_by_name("Sam")
     project = Project.find_by_name("Shop")
-    project.add_access(user, :write)
+    project.team << [user, :developer]
   end
 
   Given 'I own project "Website"' do
     @project = create(:project, :name => "Website")
-    @project.add_access(@user, :admin)
+    @project.team << [@user, :master]
   end
 
   And '"Mike" is "Website" reporter' do
     user = User.find_by_name("Mike")
     project = Project.find_by_name("Website")
-    project.add_access(user, :read)
+    project.team << [user, :reporter]
   end
 
   And 'I click link "Import team from another project"' do

@@ -18,6 +18,9 @@ class MergeRequestsController < ProjectResourceController
   end
 
   def show
+    @target_type = :merge_request
+    @target_id = @merge_request.id
+
     respond_to do |format|
       format.html
       format.js
@@ -31,7 +34,9 @@ class MergeRequestsController < ProjectResourceController
     @diffs = @merge_request.diffs
     @commit = @merge_request.last_commit
 
-    @comments_allowed = true
+    @comments_allowed = @reply_allowed = true
+    @comments_target  = { noteable_type: 'MergeRequest',
+                          noteable_id: @merge_request.id }
     @line_notes = @merge_request.notes.where("line_code is not null")
   end
 
@@ -69,6 +74,8 @@ class MergeRequestsController < ProjectResourceController
       @merge_request.check_if_can_be_merged
     end
     render json: {state: @merge_request.human_state}
+  rescue Gitlab::SatelliteNotExistError
+    render json: {state: :no_satellite}
   end
 
   def automerge
@@ -83,12 +90,12 @@ class MergeRequestsController < ProjectResourceController
   end
 
   def branch_from
-    @commit = project.commit(params[:ref])
+    @commit = @repository.commit(params[:ref])
     @commit = CommitDecorator.decorate(@commit)
   end
 
   def branch_to
-    @commit = project.commit(params[:ref])
+    @commit = @repository.commit(params[:ref])
     @commit = CommitDecorator.decorate(@commit)
   end
 

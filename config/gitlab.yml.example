@@ -18,13 +18,23 @@ gitlab:
   host: code.makandra.de
   port: 80
   https: false
+  # Uncomment and customize to run in non-root path
+  # Note that ENV['RAILS_RELATIVE_URL_ROOT'] in config/unicorn.rb may need to be changed
+  # relative_url_root: /gitlab
+
+  # Uncomment and customize if you can't use the default user to run GitLab (default: 'gitlab')
+  # user: user123
 
   ## Email settings
   # Email address used in the "From" field in mails sent by GitLab
   email_from: system@dev.makandra.de
 
+  # Email address of your support contact (default: same as email_from)
+  support_email: support@localhost
+
   ## Project settings
   default_projects_limit: 10
+  # signup_enabled: true          # default: false - Account passwords are not sent via the email if signup is enabled.
 
 ## Gravatar
 gravatar:
@@ -66,6 +76,8 @@ omniauth:
   # Uncomment the lines and fill in the data of the auth provider you want to use
   # If your favorite auth provider is not listed you can user others:
   # see https://github.com/gitlabhq/gitlabhq/wiki/Using-Custom-Omniauth-Providers
+  # The 'app_id' and 'app_secret' parameters are always passed as the first two
+  # arguments, followed by optional 'args' which can be either a hash or an array.
   providers:
     # - { name: 'google_oauth2', app_id: 'YOUR APP ID',
     #     app_secret: 'YOUR APP SECRET',
@@ -81,6 +93,11 @@ omniauth:
 # 3. Advanced settings
 # ==========================
 
+# GitLab Satellites
+satellites:
+  # Relative paths are relative to Rails.root (default: tmp/repo_satellites/)
+  path: /home/gitlab/gitlab-satellites/
+
 ## Backup settings
 backup:
   path: "tmp/backups"   # Relative paths are relative to Rails.root (default: tmp/backups/)
@@ -89,7 +106,7 @@ backup:
 ## Gitolite settings
 gitolite:
   admin_uri: git@localhost:gitolite-admin
-  # repos_path must not be a symlink
+  # REPOS_PATH MUST NOT BE A SYMLINK!!!
   repos_path: /opt/gitolite/repositories/
   hooks_path: /opt/gitolite/.gitolite/hooks/
   admin_key: gitlab
@@ -99,6 +116,9 @@ gitolite:
   ssh_host: dev.makandra.de
   # ssh_port: 22
   # config_file: gitolite.conf
+
+  # Uncomment and customize if you can't use the default group to own the repositories and run Gitolite (default: same as the 'ssh_user' above)
+  # owner_group: group123
 
 ## Git settings
 # CAUTION!

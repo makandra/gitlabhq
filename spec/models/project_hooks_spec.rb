@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe Project, "Hooks" do
   let(:project) { create(:project) }
+
   before do
     @key = create(:key, user: project.owner)
     @user = @key.user
@@ -37,11 +38,14 @@ describe Project, "Hooks" do
         @project_hook = create(:project_hook)
         @project_hook_2 = create(:project_hook)
         project.hooks << [@project_hook, @project_hook_2]
+
+        stub_request(:post, @project_hook.url)
+        stub_request(:post, @project_hook_2.url)
       end
 
       it "executes multiple web hook" do
-        @project_hook.should_receive(:execute).once
-        @project_hook_2.should_receive(:execute).once
+        @project_hook.should_receive(:async_execute).once
+        @project_hook_2.should_receive(:async_execute).once
 
         project.trigger_post_receive('oldrev', 'newrev', 'refs/heads/master', @user)
       end
@@ -70,8 +74,9 @@ describe Project, "Hooks" do
 
     context "when gathering commit data" do
       before do
-        @oldrev, @newrev, @ref = project.fresh_commits(2).last.sha, project.fresh_commits(2).first.sha, 'refs/heads/master'
-        @commit = project.fresh_commits(2).first
+        @oldrev, @newrev, @ref = project.repository.fresh_commits(2).last.sha,
+          project.repository.fresh_commits(2).first.sha, 'refs/heads/master'
+        @commit = project.repository.fresh_commits(2).first
 
         # Fill nil/empty attributes
         project.description = "This is a description"

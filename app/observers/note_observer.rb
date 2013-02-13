@@ -27,7 +27,7 @@ class NoteObserver < ActiveRecord::Observer
 
     if Notify.respond_to? notify_method
       users_without_note_author(users, note).map do |u|
-        Notify.send(notify_method, u.id, note.id).deliver
+        Notify.delay.send(notify_method, u.id, note.id).deliver
       end
     end
   end

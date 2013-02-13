@@ -40,12 +40,25 @@
     }
   }
   .event-body {
-    p {
+    .commit p {
       color: #555;
       padding-top: 5px;
     }
     .event-info {
       color: #666;
+    }
+    .event-note {
+      padding-top: 5px;
+      padding-left: 5px;
+      display: inline-block;
+      color: #555;
+    }
+    .event-note-icon {
+      color: #777;
+      float: left;
+      font-size: 16px;
+      line-height: 18px;
+      margin: 5px;
     }
   }
   .avatar {
@@ -114,7 +127,7 @@
   .btn-new-mr {
     @extend .btn-info;
     @extend .small;
-    @extend .right;
+    @extend .pull-right;
     margin: -3px;
   }
 }
@@ -126,21 +139,25 @@
 .event_filter {
   position: absolute;
   width: 40px;
-  margin-left: -50px;
+  margin-left: -55px;
 
   .filter_icon {
-    float: left;
-    border-left: 3px solid #4bc;
-    padding: 7px;
-    background: #f9f9f9;
-    margin-bottom: 10px;
-    img {
-      width: 20px;
+    a {
+      text-align:center;
+      border-left: 3px solid #29B;
+      background: #f9f9f9;
+      margin-bottom: 10px;
+      float: left;
+      padding: 9px 7px;
+      font-size: 18px;
+      width: 26px;
     }
 
     &.inactive {
-      border-left: 3px solid #EEE;
-      opacity: 0.5;
+      a {
+        color: #DDD;
+        border-left: 3px solid #EEE;
+      }
     }
   }
 }

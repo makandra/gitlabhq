@@ -2,6 +2,7 @@ require Rails.root.join('lib', 'gitlab', 'graph', 'json_builder')
 
 class ProjectsController < ProjectResourceController
   skip_before_filter :project, only: [:new, :create]
+  skip_before_filter :repository, only: [:new, :create]
 
   # Authorize
   before_filter :authorize_read_project!, except: [:index, :new, :create]
@@ -18,7 +19,7 @@ class ProjectsController < ProjectResourceController
   end
 
   def create
-    @project = Project.create_by_user(params[:project], current_user)
+    @project = ::Projects::CreateContext.new(current_user, params[:project]).execute
 
     respond_to do |format|
       flash[:notice] = 'Project was successfully created.' if @project.saved?
@@ -34,7 +35,7 @@ class ProjectsController < ProjectResourceController
   end
 
   def update
-    status = ProjectUpdateContext.new(project, current_user, params).execute
+    status = ::Projects::UpdateContext.new(project, current_user, params).execute
 
     respond_to do |format|
       if status
@@ -58,7 +59,7 @@ class ProjectsController < ProjectResourceController
 
     respond_to do |format|
       format.html do
-        unless @project.empty_repo?
+        if @project.repository && !@project.repository.empty?
           @last_push = current_user.recent_push(@project.id)
           render :show
         else
@@ -79,31 +80,23 @@ class ProjectsController < ProjectResourceController
 
   def wall
     return render_404 unless @project.wall_enabled
-    @note = Note.new
+
+    @target_type = :wall
+    @target_id = nil
+    @note = @project.notes.new
 
     respond_to do |format|
       format.html
-    end
-  end
-
-  def graph
-    respond_to do |format|
-      format.html
-      format.json do
-        graph = Gitlab::Graph::JsonBuilder.new(project)
-        render :json => graph.to_json
-      end
     end
   end
 
   def destroy
     return access_denied! unless can?(current_user, :remove_project, project)
 
-    # Disable the UsersProject update_repository call, otherwise it will be
-    # called once for every person removed from the project
-    UsersProject.skip_callback(:destroy, :after, :update_repository)
+    # Delete team first in order to prevent multiple gitolite calls
+    project.team.truncate
+
     project.destroy
-    UsersProject.set_callback(:destroy, :after, :update_repository)
 
     respond_to do |format|
       format.html { redirect_to root_path }

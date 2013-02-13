@@ -1,9 +1,13 @@
+require 'simplecov' unless ENV['CI']
+
 ENV['RAILS_ENV'] = 'test'
 require './config/environment'
 
 require 'rspec'
 require 'database_cleaner'
 require 'spinach/capybara'
+require 'sidekiq/testing/inline'
+
 
 require './features/support/allow_rescue'
 
@@ -20,7 +24,6 @@ Dir["#{Rails.root}/features/steps/shared/*.rb"].each {|file| require file}
 include GitoliteStub
 
 WebMock.allow_net_connect!
-
 #
 # JS driver
 #

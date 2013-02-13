@@ -7,7 +7,7 @@
       %b Total commits:
       %span= @stats.commits_count
     %p
-      %b Total files in #{@project.root_ref}:
+      %b Total files in #{@repository.root_ref}:
       %span= @stats.files_count
     %p
       %b Authors:
@@ -23,7 +23,7 @@
           = image_tag gravatar_icon(author.email, 16), class: 'avatar s16'
           = author.name
           %small.light= author.email
-          .right
+          .pull-right
             = author.commits
 
 
