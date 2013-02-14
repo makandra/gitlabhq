@@ -1,0 +1,9 @@
+---
+:queues:
+  - post_receive
+  - mailer
+  - system_hook
+  - project_web_hook
+  - gitolite
+  - common
+  - default
