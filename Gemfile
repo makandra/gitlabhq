@@ -10,9 +10,7 @@ end
 
 gem "rails", "3.2.11"
 
-# Supported DBs
-gem "mysql2", group: :mysql
-gem "pg", group: :postgres
+gem "mysql2"
 
 # Auth
 gem "devise", "~> 2.1.0"
