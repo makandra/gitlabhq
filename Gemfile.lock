@@ -206,7 +206,6 @@ GEM
       gratr19 (~> 0.4.4.1)
       grit (~> 2.5.0)
       hashery (~> 1.5.0)
-    god (0.12.1)
     grape (0.2.2)
       activesupport
       hashie (~> 1.2)
@@ -396,6 +395,8 @@ GEM
       rspec-mocks (~> 2.12.0)
     rubyntlm (0.1.1)
     rubyzip (0.9.9)
+    rvm-capistrano (1.2.2)
+      capistrano (>= 2.0.0)
     sass (3.2.5)
     sass-rails (3.2.5)
       railties (~> 3.2.0)
@@ -515,7 +516,6 @@ DEPENDENCIES
   gitlab_omniauth-ldap (= 1.0.2)
   gitlab_yaml_db (= 1.0.0)
   gitolite (= 1.1.0)
-  god
   grack!
   grape (~> 0.2.1)
   grit!
@@ -550,6 +550,7 @@ DEPENDENCIES
   rb-inotify
   redcarpet (~> 2.2.2)
   rspec-rails
+  rvm-capistrano
   sass-rails (~> 3.2.5)
   sdoc
   seed-fu

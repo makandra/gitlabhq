@@ -1,5 +1,11 @@
 require 'bundler/capistrano'
 
+set :rvm_ruby_string, 'ruby-1.9.3-p385'
+
+require 'rvm/capistrano'
+
+require 'sidekiq/capistrano'
+
 set :use_sudo, false
 set :deploy_via, :remote_cache
 set :copy_exclude, [ '.git' ]
@@ -7,7 +13,7 @@ set :copy_exclude, [ '.git' ]
 set :repository, "git://github.com/makandra/gitlabhq.git"
 set :scm, :git
 
-set :user, "deploy-code-makandra"
+set :user, "deploy-code_makandra"
 set :deploy_to, '/opt/www/code.makandra.de'
 set :rails_env, 'production'
 set :branch, 'makandra'
@@ -84,39 +90,13 @@ namespace :deploy do
 
 end
 
-namespace :god do
-  def god_is_running
-    !capture("#{god_command} status >/dev/null 2>/dev/null || echo 'not running'").start_with?('not running')
-  end
-
-  def god_command
-    "cd #{current_path}; bundle exec god"
-  end
-
-  desc "Stop god"
-  task :terminate_if_running do
-    if god_is_running
-      run "#{god_command} terminate"
-    end
-  end
-
-  desc "Start god"
-  task :start do
-    config_file = "#{current_path}/config/god/resque.god"
-    environment = { :RAILS_ENV => rails_env, :RAILS_ROOT => current_path }
-    run "#{god_command} -c #{config_file}", :env => environment
-  end
-end
-
-before "deploy:update", "god:terminate_if_running"
-after "deploy:update", "god:start"
 
 before "deploy:update_code", "db:dump"
 before "deploy:setup", :db
 after "deploy:update_code", "db:symlink" 
 after "deploy:update_code", "deploy:additional_symlinks"
 before "deploy:setup", 'deploy:setup_storage'
-after "deploy:symlink", "db:warn_if_pending_migrations"
+after "deploy:create_symlink", "db:warn_if_pending_migrations"
 after "deploy:restart", "db:show_dump_usage"
 
 load 'deploy/assets'

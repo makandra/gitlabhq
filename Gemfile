@@ -112,10 +112,6 @@ group :assets do
   gem "gemoji", "~> 1.2.1", require: 'emoji/railtie'
 end
 
-group :server do
-  gem "god"
-end
-
 group :development do
   gem "annotate", git: "https://github.com/ctran/annotate_models.git"
   gem "letter_opener"
@@ -123,6 +119,7 @@ group :development do
   gem 'rack-mini-profiler'
   gem "capistrano"
   gem "capistrano_colors"
+  gem 'rvm-capistrano'
 
   # Better errors handler
   gem 'better_errors'
