@@ -1,7 +1,7 @@
 module Gitlab
   module APIHelpers
     def current_user
-      @current_user ||= User.find_by_authentication_token(params[:private_token] || env["HTTP_PRIVATE_TOKEN"])
+      @current_user ||= User.find_by_authentication_token(params[:private_token].to_s || env["HTTP_PRIVATE_TOKEN"].to_s)
     end
 
     def user_project
