@@ -41,29 +41,6 @@ describe MergeRequest do
     it { should include_module(Issuable) }
   end
 
-  describe "#involved_users" do
-    let(:author) { User.new }
-    let(:assignee) { User.new }
-    let(:note_author1) { User.new }
-    let(:note_author2) { User.new }
-
-    it 'should return author, assignee and all who wrote notes' do
-      subject.author = author
-      subject.assignee = assignee
-      subject.stub :notes => [Note.new.tap { |n| n.author = note_author1 }, Note.new.tap { |n| n.author = note_author2 }]
-
-      subject.involved_users.should =~ [author, assignee, note_author1, note_author2]
-    end
-
-    it 'should not return users twice' do
-      subject.author = author
-      subject.assignee = author
-      subject.stub :notes => [Note.new.tap { |n| n.author = author }]
-
-      subject.involved_users.should == [author]
-    end
-  end
-
   describe "#mr_and_commit_notes" do
 
   end

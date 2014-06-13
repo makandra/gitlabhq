@@ -41,7 +41,6 @@ Feature: Project Merge Requests
   Scenario: I comment on a merge request
     Given I visit merge request page "Bug NS-04"
     And I leave a comment like "XML attached"
-    Then show me the page
     Then I should see comment "XML attached"
 
   @javascript

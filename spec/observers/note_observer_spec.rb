@@ -4,9 +4,7 @@ describe NoteObserver do
   subject { NoteObserver.instance }
   before { subject.stub(notification: mock('NotificationService').as_null_object) }
 
-  let(:users) { (1..3).map { |n| double :user, id: n } }
-  let(:users_without_author) { (1..2).map { |n| double :user, id: n } }
-  let(:delivery_success) { double deliver: true }
+  let(:team_without_author) { (1..2).map { |n| double :user, id: n } }
 
   describe '#after_create' do
     let(:note) { double :note }
