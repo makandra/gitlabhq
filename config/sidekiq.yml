@@ -4,6 +4,6 @@
   - mailer
   - system_hook
   - project_web_hook
-  - gitolite
+  - gitlab_shell
   - common
   - default
