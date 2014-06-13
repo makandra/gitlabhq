@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20130318212250) do
+ActiveRecord::Schema.define(:version => 20130410175022) do
 
   create_table "events", :force => true do |t|
     t.string   "target_type"
@@ -168,9 +168,11 @@ ActiveRecord::Schema.define(:version => 20130318212250) do
     t.string   "issues_tracker",         :default => "gitlab", :null => false
     t.string   "issues_tracker_id"
     t.boolean  "snippets_enabled",       :default => true,     :null => false
+    t.datetime "last_activity_at"
   end
 
   add_index "projects", ["creator_id"], :name => "index_projects_on_owner_id"
+  add_index "projects", ["last_activity_at"], :name => "index_projects_on_last_activity_at"
   add_index "projects", ["namespace_id"], :name => "index_projects_on_namespace_id"
 
   create_table "protected_branches", :force => true do |t|
@@ -217,9 +219,6 @@ ActiveRecord::Schema.define(:version => 20130318212250) do
     t.string   "context"
     t.datetime "created_at"
   end
-
-  add_index "taggings", ["tag_id"], :name => "index_taggings_on_tag_id"
-  add_index "taggings", ["taggable_id", "taggable_type", "context"], :name => "index_taggings_on_taggable_id_and_taggable_type_and_context"
 
   create_table "tags", :force => true do |t|
     t.string "name"
@@ -282,21 +281,22 @@ ActiveRecord::Schema.define(:version => 20130318212250) do
     t.boolean  "can_create_team",                       :default => true,  :null => false
     t.string   "state"
     t.integer  "color_scheme_id",                       :default => 1,     :null => false
+    t.integer  "notification_level",                    :default => 1,     :null => false
   end
 
   add_index "users", ["admin"], :name => "index_users_on_admin"
   add_index "users", ["email"], :name => "index_users_on_email", :unique => true
-  add_index "users", ["extern_uid", "provider"], :name => "index_users_on_extern_uid_and_provider", :unique => true
   add_index "users", ["name"], :name => "index_users_on_name"
   add_index "users", ["reset_password_token"], :name => "index_users_on_reset_password_token", :unique => true
   add_index "users", ["username"], :name => "index_users_on_username"
 
   create_table "users_projects", :force => true do |t|
-    t.integer  "user_id",                       :null => false
-    t.integer  "project_id",                    :null => false
+    t.integer  "user_id",                           :null => false
+    t.integer  "project_id",                        :null => false
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.integer  "project_access", :default => 0, :null => false
+    t.integer  "project_access",     :default => 0, :null => false
+    t.integer  "notification_level", :default => 3, :null => false
   end
 
   add_index "users_projects", ["project_access"], :name => "index_users_projects_on_project_access"
@@ -311,18 +311,5 @@ ActiveRecord::Schema.define(:version => 20130318212250) do
     t.string   "type",       :default => "ProjectHook"
     t.integer  "service_id"
   end
-
-  create_table "wikis", :force => true do |t|
-    t.string   "title"
-    t.text     "content"
-    t.integer  "project_id"
-    t.datetime "created_at", :null => false
-    t.datetime "updated_at", :null => false
-    t.string   "slug"
-    t.integer  "user_id"
-  end
-
-  add_index "wikis", ["project_id"], :name => "index_wikis_on_project_id"
-  add_index "wikis", ["slug"], :name => "index_wikis_on_slug"
 
 end

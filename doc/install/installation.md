@@ -1,19 +1,12 @@
-This installation guide was created for Debian/Ubuntu and tested on it. Please read [`doc/install/requirements.md`](./requirements.md) for hardware and platform requirements.
+# Important notes
 
-This installation guide is recommended to set up a production server. If you want a development environment please use the [Vagrant virtual machine](https://github.com/gitlabhq/gitlab-vagrant-vm) since it makes it much easier to set up all the dependencies for integration testing.
+This installation guide was created for and tested on **Debian/Ubuntu** operating systems. Please read [`doc/install/requirements.md`](./requirements.md) for hardware and operating system requirements.
 
-**Important Note:**
-The following steps have been known to work.
-If you deviate from this guide, do it with caution and make sure you don't
-violate any assumptions GitLab makes about its environment.
-For things like AWS installation scripts, init scripts or config files for
-alternative web server have a look at the [`Advanced Setup
-Tips`](./installation.md#advanced-setup-tips) section.
+This is the official installation guide to set up a production server. To set up a **development installation** or for many other installation options please consult [the installation section in the readme](https://github.com/gitlabhq/gitlabhq#installation).
 
+The following steps have been known to work. Please **use caution when you deviate** from this guide. Make sure you don't violate any assumptions GitLab makes about its environment.
 
-**Important Note:**
-If you find a bug/error in this guide please submit an issue or pull request
-following the [`contribution guide`](../../CONTRIBUTING.md).
+If you find a bug/error in this guide please **submit a pull request** following the [`contributing guide`](../../CONTRIBUTING.md).
 
 - - -
 
@@ -74,8 +67,8 @@ Make sure you have the right version of Python installed.
 Download and compile it:
 
     mkdir /tmp/ruby && cd /tmp/ruby
-    curl --progress http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p327.tar.gz | tar xz
-    cd ruby-1.9.3-p327
+    curl --progress http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p392.tar.gz | tar xz
+    cd ruby-1.9.3-p392
     ./configure
     make
     sudo make install
@@ -106,11 +99,10 @@ GitLab Shell is a ssh access and repository management software developed specia
     git clone https://github.com/gitlabhq/gitlab-shell.git
 
     cd gitlab-shell
-    
-    # switch to right version for v5.0
-    git checkout v1.1.0
-    git checkout -b v1.1.0
-    
+
+    # switch to right version
+    git checkout v1.2.0
+
     cp config.yml.example config.yml
 
     # Edit config and replace gitlab_url
@@ -305,7 +297,26 @@ If you are running SSH on a non-standard port, you must change the gitlab user's
 
 You also need to change the corresponding options (e.g. ssh_user, ssh_host, admin_uri) in the `config\gitlab.yml` file.
 
-## User-contributed Configurations
+## LDAP authentication
 
-You can find things like  AWS installation scripts, init scripts or config files
-for alternative web server in our [recipes collection](https://github.com/gitlabhq/gitlab-recipes/).
+You can configure LDAP authentication in config/gitlab.yml. Please restart GitLab after editing this file.
+
+## Using Custom Omniauth Providers
+
+GitLab uses [Omniauth](http://www.omniauth.org/) for authentication and already ships with a few providers preinstalled (e.g. LDAP, GitHub, Twitter). But sometimes that is not enough and you need to integrate with other authentication solutions. For these cases you can use the Omniauth provider.
+
+### Steps
+
+These steps are fairly general and you will need to figure out the exact details from the Omniauth provider's documentation.
+
+* Add `gem "omniauth-your-auth-provider"` to the [Gemfile](https://github.com/gitlabhq/gitlabhq/blob/master/Gemfile#L18)
+* Run `sudo -u git -H bundle install` to install the new gem(s)
+* Add provider specific configuration options to your `config/gitlab.yml` (you can use the [auth providers section of the example config](https://github.com/gitlabhq/gitlabhq/blob/master/config/gitlab.yml.example#L53) as a reference)
+* Add icons for the new provider into the [vendor/assets/images/authbuttons](https://github.com/gitlabhq/gitlabhq/tree/master/vendor/assets/images/authbuttons) directory (you can find some more popular ones over at https://github.com/intridea/authbuttons)
+* Restart GitLab
+
+### Examples
+
+If you have successfully set up a provider that is not shipped with GitLab itself, please let us know.
+You can help others by reporting successful configurations and probably share a few insights or provide warnings for common errors or pitfalls by sharing your experience [in the public Wiki](https://github.com/gitlabhq/gitlab-public-wiki/wiki/Working-Custom-Omniauth-Provider-Configurations).
+While we can't officially support every possible auth mechanism out there, we'd like to at least help those with special needs.

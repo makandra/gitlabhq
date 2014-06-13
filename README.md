@@ -12,11 +12,11 @@
 
 * powered by Ruby on Rails
 * completely free and open source (MIT license)
-* used by 10.000 organizations to keep their code secure
+* used by more than 10.000 organizations to keep their code secure
 
 ### Code status
 
-* [![build status](http://ci.gitlab.org/projects/1/status?ref=master)](http://ci.gitlab.org/projects/1?ref=master) ci.gitlab.org (master branch)
+* [![build status](http://ci.gitlab.org/projects/1/status.png?ref=master)](http://ci.gitlab.org/projects/1?ref=master) ci.gitlab.org (master branch)
 
 * [![build status](https://secure.travis-ci.org/gitlabhq/gitlabhq.png)](https://travis-ci.org/gitlabhq/gitlabhq) travis-ci.org (master branch)
 
@@ -30,7 +30,7 @@
 
 * GitLab.org community site: [Homepage](http://gitlab.org) [Screenshots](http://gitlab.org/screenshots/) [Blog](http://blog.gitlab.org/) [Demo](http://demo.gitlabhq.com/users/sign_in)
 
-* GitLab.com commercial services: [Homepage](http://blog.gitlab.com/) [GitLab Cloud](http://blog.gitlab.com/cloud/) [Subscription](http://blog.gitlab.com/subscription/) [Consultancy](http://blog.gitlab.com/consultancy/) [Blog](http://blog.gitlab.com/blog/)
+* GitLab.com commercial services: [Homepage](http://www.gitlab.com/) [Subscription](http://www.gitlab.com/subscription/) [Consultancy](http://www.gitlab.com/consultancy/) [GitLab Cloud](http://www.gitlab.com/cloud/) [Blog](http://blog.gitlab.com/)
 
 * GitLab CI: [Readme](https://github.com/gitlabhq/gitlab-ci/blob/master/README.md) of the GitLab open-source continuous integration server
 
@@ -47,41 +47,66 @@
 
 ### Installation
 
-#### For production
+#### Official production installation
 
 Follow the installation guide for production server.
 
-* [Installation guide for latest stable release (4.2)](https://github.com/gitlabhq/gitlabhq/blob/4-2-stable/doc/install/installation.md) - **Recommended**
+* [Installation guide for latest stable release (5.0)](https://github.com/gitlabhq/gitlabhq/blob/5-0-stable/doc/install/installation.md) - **Recommended**
 
-* [Installation guide for the current master branch (5.0)](https://github.com/gitlabhq/gitlabhq/blob/master/doc/install/installation.md)
+* [Installation guide for the current master branch (5.1)](https://github.com/gitlabhq/gitlabhq/blob/master/doc/install/installation.md)
 
 
-#### For development
+#### Official development installation
 
-If you want to contribute, please first read our [Contributing Guidelines](https://github.com/gitlabhq/gitlabhq/blob/master/CONTRIBUTING.md) and then we suggest you to use the Vagrant virtual machine project to get an environment working sandboxed and with all dependencies.
+If you want to contribute, please first read our [Contributing Guidelines](https://github.com/gitlabhq/gitlabhq/blob/master/CONTRIBUTING.md) and then we suggest you to use the Vagrant virtual machine project to get an environment working with all dependencies.
 
 * [Vagrant virtual machine](https://github.com/gitlabhq/gitlab-vagrant-vm)
 
-### Starting
 
-1. The Installation guide contains instructions to download an init script and run that on boot. With the init script you can also start GitLab
+#### Unsupported production installation
+
+* [GitLab recipes](https://github.com/gitlabhq/gitlab-recipes) for setup on different platforms
+
+* [Unofficial installation guides](https://github.com/gitlabhq/gitlab-public-wiki/wiki/Unofficial-Installation-Guides)
+
+* [BitNami one-click installers](http://bitnami.com/stack/gitlab)
+
+* [TurnKey Linux virtual appliance](http://www.turnkeylinux.org/gitlab)
+
+
+### New versions and upgrading
+
+Each month on the 22th a new version is released together with an upgrade guide.
+
+* [Upgrade guides](https://github.com/gitlabhq/gitlabhq/wiki)
+
+* [Changelog](https://github.com/gitlabhq/gitlabhq/blob/master/CHANGELOG)
+
+* Features that will be in the next release are listed on [the feedback and suggestions forum with the status "started"](http://feedback.gitlab.com/forums/176466-general/status/796456).
+
+
+### Run in production mode
+
+1. The Installation guide contains instructions on how to download an init script and run it automatically on boot. You can also start the init script manually:
 
         sudo service gitlab start
 
-  or
+  or by directly calling the script
 
-        sudo /etc/init.d/gitlab restart
+        sudo /etc/init.d/gitlab start
 
-2. Start it with [Foreman](https://github.com/ddollar/foreman) in development mode
+### Run in development mode
+
+Start it with [Foreman](https://github.com/ddollar/foreman)
 
         bundle exec foreman start -p 3000
 
- or start it manually
+  or start each component separately
 
         bundle exec rails s
         bundle exec rake sidekiq:start
 
-### Running the tests
+### Run the tests
 
 * Seed the database
 
@@ -100,37 +125,34 @@ If you want to contribute, please first read our [Contributing Guidelines](https
 
         bundle exec rake spinach
 
-### Getting help
 
-* [Troubleshooting guide](https://github.com/gitlabhq/gitlab-public-wiki/wiki/Trouble-Shooting-Guide)
-
-* [Support forum](https://groups.google.com/forum/#!forum/gitlabhq)
-
-* [Feedback and suggestions forum](http://gitlab.uservoice.com/forums/176466-general)
-
-* [Support subscription](http://blog.gitlab.com/subscription/)
-
-* [Consultancy](http://blog.gitlab.com/consultancy/)
-
-### New versions and the API
-
-Each month on the 22th a new version is released together with an upgrade guide.
-
-* [Upgrade guides](https://github.com/gitlabhq/gitlabhq/wiki)
-
-* [Roadmap](https://github.com/gitlabhq/gitlabhq/blob/master/ROADMAP.md)
-
-### Other documentation
+### GitLab interfaces
 
 * [GitLab API](https://github.com/gitlabhq/gitlabhq/blob/master/doc/api/README.md)
 
 * [Rake tasks](https://github.com/gitlabhq/gitlabhq/tree/master/doc/raketasks)
 
-* [GitLab recipes](https://github.com/gitlabhq/gitlab-recipes)
+* [Directory structure](https://github.com/gitlabhq/gitlabhq/blob/master/doc/install/structure.md)
+
+* [Databases](https://github.com/gitlabhq/gitlabhq/blob/master/doc/install/databases.md)
+
+
+### Getting help
+
+* [Troubleshooting guide](https://github.com/gitlabhq/gitlab-public-wiki/wiki/Trouble-Shooting-Guide) contains solutions to common problems.
+
+* [Support forum](https://groups.google.com/forum/#!forum/gitlabhq) is the best place to ask questions. For example you can use it if you have questions about: permission denied errors, invisible repos, can't clone/pull/push or with web hooks that don't fire. Please search for similar issues before posting your own, there's a good chance somebody else had the same issue you have now and had it resolved. There are a lot of helpful GitLab users there who may be able to help you quickly. If your particular issue turns out to be a bug, it will find its way from there to a fix.
+
+* [Feedback and suggestions forum](http://feedback.gitlab.com) is the place to propose and discuss new features for GitLab.
+
+* [Support subscription](http://www.gitlab.com/subscription/) connect you to the knowledge of GitLab experts that will resolve your issues and answer your questions.
+
+* [Consultancy](http://www.gitlab.com/consultancy/) allows you hire GitLab experts for installations, upgrades and customizations.
+
+* [Contributing guide](https://github.com/gitlabhq/gitlabhq/blob/master/CONTRIBUTING.md) describes how to submit pull requests and issues. Pull requests and issues not in line with the guidelines in this document will be closed.
+
 
 ### Getting in touch
-
-* [Contributing guide](https://github.com/gitlabhq/gitlabhq/blob/master/CONTRIBUTING.md)
 
 * [Core team](https://github.com/gitlabhq?tab=members)
 
