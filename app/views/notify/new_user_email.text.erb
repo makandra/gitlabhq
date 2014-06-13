@@ -4,7 +4,7 @@ Administrator created account for you. Now you are a member of company GitLab ap
           
 login.................. <%= @user.email %>
 <% unless Gitlab.config.gitlab.signup_enabled %>
-  password............... <%= @password %>
+Please use the "forget password" functionality to set a password.
 <% end %>
 
 Click here to login: <%= url_for(root_url) %>
