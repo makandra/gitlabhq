@@ -257,7 +257,6 @@ GEM
       treetop (~> 1.4.8)
     method_source (0.8.1)
     mime-types (1.21)
-    mime-types (1.22)
     modernizr-rails (2.6.2)
       sprockets (~> 2.0)
     multi_json (1.7.2)
@@ -305,8 +304,6 @@ GEM
       coderay (~> 1.0.5)
       method_source (~> 0.8)
       slop (~> 3.4)
-    puma (2.0.0.b7)
-      rack (>= 1.1, < 2.0)
     pygments.rb (0.4.2)
       posix-spawn (~> 0.3.6)
       yajl-ruby (~> 1.1.0)
@@ -547,7 +544,6 @@ DEPENDENCIES
   omniauth-twitter
   poltergeist!
   pry
-  puma (~> 2.0.0.b7)
   quiet_assets (~> 1.0.1)
   rack-mini-profiler
   rails (= 3.2.13)
