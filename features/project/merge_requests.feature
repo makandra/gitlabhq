@@ -41,9 +41,6 @@ Feature: Project Merge Requests
     And I submit new merge request "Wiki Feature"
     Then I should see merge request "Wiki Feature"
 
-  Scenario: Branch names should be sorted
-    Then I should see "master" before "stable"
-
   @javascript
   Scenario: I comment on a merge request
     Given I visit merge request page "Bug NS-04"
