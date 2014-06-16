@@ -14,10 +14,10 @@ set :repository, "git://github.com/makandra/gitlabhq.git"
 set :scm, :git
 
 set :user, "git"
-set :deploy_to, '/home/git/dev.makandra.de'
+set :deploy_to, '/home/git/code.makandra.de'
 set :rails_env, 'production'
 set :branch, 'makandra'
-server "code.makandra.de", :app, :web, :cron, :db, :primary => true
+server "dev.makandra.de", :app, :web, :cron, :db, :primary => true
 
 ssh_options[:keys_only] = true
 
