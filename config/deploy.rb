@@ -1,6 +1,6 @@
 require 'bundler/capistrano'
 
-set :rvm_ruby_string, 'ruby-1.9.3-p547'
+set :rvm_ruby_string, 'ruby-2.1.2'
 
 require 'rvm/capistrano'
 
