@@ -1,8 +1,31 @@
-v 6.8.2
-  - Bump rails to 4.0.5 in light of CVE-2014-0130
+v 6.9.2
+  - Revert the commit that broke the LDAP user filter
 
-v 6.8.1
-  - Bump required gitlab-shell version to 1.9.3
+v 6.9.1
+  - Fix scroll to highlighted line
+  - Fix the pagination on load for commits page
+
+v 6.9.0
+  - Store Rails cache data in the Redis `cache:gitlab` namespace
+  - Adjust MySQL limits for existing installations
+  - Add db index on project_id+iid column. This prevents duplicate on iid (During migration duplicates will be removed)
+  - Markdown preview or diff during editing via web editor (Evgeniy Sokovikov)
+  - Give the Rails cache its own Redis namespace
+  - Add ability to set different ssh host, if different from http/https
+  - Fix syntax highlighting for code comments blocks
+  - Improve comments loading logic
+  - Stop refreshing comments when the tab is hidden
+  - Improve issue and merge request mobile UI (Drew Blessing)
+  - Document how to convert a backup to PostgreSQL
+  - Fix locale bug in backup manager
+  - Fix can not automerge when MR description is too long
+  - Fix wiki backup skip bug
+  - Two Step MR creation process
+  - Remove unwanted files from satellite working directory with git clean -fdx
+  - Accept merge request via API (sponsored by O'Reilly Media)
+  - Add more access checks during API calls
+  - Block SSH access for 'disabled' Active Directory users
+  - Labels for merge requests (Drew Blessing)
 
 v 6.8.0
   - Ability to at mention users that are participating in issue and merge req. discussion

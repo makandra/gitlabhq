@@ -69,6 +69,7 @@ gem "carrierwave"
 
 # for aws storage
 gem "fog", "~> 1.14", group: :aws
+gem "unf", group: :aws
 
 # Authorization
 gem "six"
@@ -79,6 +80,9 @@ gem "seed-fu"
 # Markdown to HTML
 gem "redcarpet",     "~> 2.2.2"
 gem "github-markup"
+
+# Diffs
+gem 'diffy', '~> 3.0.3'
 
 # Asciidoc to HTML
 gem  "asciidoctor"
@@ -149,8 +153,9 @@ gem 'jquery-turbolinks'
 
 gem 'select2-rails'
 gem 'jquery-atwho-rails', "~> 0.3.3"
-gem "jquery-rails",     "2.1.3"
-gem "jquery-ui-rails",  "2.0.2"
+gem "jquery-rails"
+gem "jquery-ui-rails"
+gem "jquery-scrollto-rails"
 gem "raphael-rails", "~> 2.1.2"
 gem 'bootstrap-sass', '~> 3.0'
 gem "font-awesome-rails", '~> 3.2'
