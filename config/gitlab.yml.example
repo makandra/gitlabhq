@@ -33,13 +33,13 @@ production: &base
 
     ## Email settings
     # Email address used in the "From" field in mails sent by GitLab
-    email_from: system@dev.makandra.de
+    email_from: system@code.makandra.de
 
     # Email address of your support contact (default: same as email_from)
-    support_email: support@localhost
+    support_email: system@code.makandra.de
 
     ## User settings
-    default_projects_limit: 10
+    default_projects_limit: 100
     # default_can_create_group: false  # default: true
     # default_can_create_team: false   # default: true
     # username_changing_enabled: false # default: true - User can change her username/namespace
