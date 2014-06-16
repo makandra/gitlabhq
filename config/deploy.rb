@@ -17,7 +17,7 @@ set :user, "git"
 set :deploy_to, '/home/git/code.makandra.de'
 set :rails_env, 'production'
 set :branch, 'makandra'
-server "dev.makandra.de", :app, :web, :cron, :db, :primary => true
+server "dev.makandra.de", :app, :web, :cron, :db, :cache, :primary => true
 
 ssh_options[:keys_only] = true
 
@@ -85,6 +85,14 @@ namespace :deploy do
 
 end
 
+namespace :cache do
+
+  task :clear, :roles => :cache do
+    rails_env = fetch(:rails_env, 'production')
+    run "cd #{release_path}; bundle exec rake cache:clear RAILS_ENV=#{rails_env}"
+  end
+
+end
 
 before "deploy:update_code", "db:dump"
 before "deploy:setup", :db
@@ -92,6 +100,7 @@ after "deploy:update_code", "db:symlink"
 after "deploy:update_code", "deploy:additional_symlinks"
 before "deploy:setup", 'deploy:setup_storage'
 after "deploy:create_symlink", "db:warn_if_pending_migrations"
+after "deploy:create_symlink", "cache:clear"
 after "deploy:restart", "db:show_dump_usage"
 
 load 'deploy/assets'
