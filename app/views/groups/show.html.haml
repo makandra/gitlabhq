@@ -13,7 +13,7 @@
     .loading.hide
   .side.span4
     - if @group.description.present?
-      .description.well.well-small.light
+      .description-block
         = @group.description
     = render "projects", projects: @projects
     .prepend-top-20
@@ -24,6 +24,3 @@
 
     %hr
     = render 'shared/promo'
-
-:javascript
-  $(function(){ Pager.init(20, true); });

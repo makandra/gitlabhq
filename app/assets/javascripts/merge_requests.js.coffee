@@ -21,6 +21,8 @@ class MergeRequest
     this.initMergeWidget()
     this.$('.show-all-commits').on 'click', =>
       this.showAllCommits()
+    
+    modal = $('#modal_merge_info').modal(show: false)
 
   # Local jQuery finder
   $: (selector) ->

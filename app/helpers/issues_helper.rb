@@ -1,9 +1,4 @@
 module IssuesHelper
-  def project_issues_filter_path project, params = {}
-    params[:f] ||= cookies['issue_filter']
-    project_issues_path project, params
-  end
-
   def issue_css_classes issue
     classes = "issue"
     classes << " closed" if issue.closed?
@@ -11,42 +6,18 @@ module IssuesHelper
     classes
   end
 
-  def issue_tags
-    @project.issues.tag_counts_on(:labels).map(&:name)
-  end
-
   # Returns an OpenStruct object suitable for use by <tt>options_from_collection_for_select</tt>
   # to allow filtering issues by an unassigned User or Milestone
   def unassigned_filter
     # Milestone uses :title, Issue uses :name
-    OpenStruct.new(id: 0, title: 'Unspecified', name: 'Unassigned')
-  end
-
-  def issues_filter
-    {
-      all: "all",
-      closed: "closed",
-      to_me: "assigned-to-me",
-      by_me: "created-by-me",
-      open: "open"
-    }
-  end
-
-  def labels_autocomplete_source
-    labels = @project.issues_labels.order('count DESC')
-    labels = labels.map{ |l| { label: l.name, value: l.name } }
-    labels.to_json
-  end
-
-  def issues_active_milestones
-    @project.milestones.active.order("id desc").all
+    OpenStruct.new(id: 0, title: 'None (backlog)', name: 'Unassigned')
   end
 
   def url_for_project_issues
     return "" if @project.nil?
 
     if @project.used_default_issues_tracker?
-      project_issues_filter_path(@project)
+      project_issues_path(@project)
     else
       url = Gitlab.config.issues_tracker[@project.issues_tracker]["project_url"]
       url.gsub(':project_id', @project.id.to_s)

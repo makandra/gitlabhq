@@ -1,5 +1,18 @@
 module Gitlab
   class Auth
+    def find(login, password)
+      user = User.find_by_email(login) || User.find_by_username(login)
+
+      if user.nil? || user.ldap_user?
+        # Second chance - try LDAP authentication
+        return nil unless ldap_conf.enabled
+
+        ldap_auth(login, password)
+      else
+        user if user.valid_password?(password)
+      end
+    end
+
     def find_for_ldap_auth(auth, signed_in_resource = nil)
       uid = auth.info.uid
       provider = auth.provider
@@ -10,7 +23,7 @@ module Gitlab
         @user
       elsif @user = User.find_by_email(email)
         log.info "Updating legacy LDAP user #{email} with extern_uid => #{uid}"
-        @user.update_attributes(:extern_uid => uid, :provider => provider)
+        @user.update_attributes(extern_uid: uid, provider: provider)
         @user
       else
         create_from_omniauth(auth, true)
@@ -39,8 +52,7 @@ module Gitlab
         email: email,
         password: password,
         password_confirmation: password,
-        projects_limit: Gitlab.config.gitlab.default_projects_limit,
-      }, as: :admin)
+      }, as: :admin).with_defaults
       @user.save!
 
       if Gitlab.config.omniauth['block_auto_created_users'] && !ldap
@@ -57,7 +69,7 @@ module Gitlab
       if @user = User.find_by_provider_and_extern_uid(provider, uid)
         @user
       elsif @user = User.find_by_email(email)
-        @user.update_attributes(:extern_uid => uid, :provider => provider)
+        @user.update_attributes(extern_uid: uid, provider: provider)
         @user
       else
         if Gitlab.config.omniauth['allow_single_sign_on']
@@ -69,6 +81,25 @@ module Gitlab
 
     def log
       Gitlab::AppLogger
+    end
+
+    def ldap_auth(login, password)
+      # Check user against LDAP backend if user is not authenticated
+      # Only check with valid login and password to prevent anonymous bind results
+      return nil unless ldap_conf.enabled && !login.blank? && !password.blank?
+
+      ldap = OmniAuth::LDAP::Adaptor.new(ldap_conf)
+      ldap_user = ldap.bind_as(
+        filter: Net::LDAP::Filter.eq(ldap.uid, login),
+        size: 1,
+        password: password
+      )
+
+      User.find_by_extern_uid_and_provider(ldap_user.dn, 'ldap') if ldap_user
+    end
+
+    def ldap_conf
+      @ldap_conf ||= Gitlab.config.ldap
     end
   end
 end

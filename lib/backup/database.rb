@@ -26,7 +26,7 @@ module Backup
         system("mysql #{mysql_args} #{config['database']} < #{db_file_name}")
       when "postgresql" then
         pg_env
-        system("pg_restore #{config['database']} #{db_file_name}")
+        system("psql #{config['database']} -f #{db_file_name}")
       end
     end
 
@@ -45,7 +45,7 @@ module Backup
         'encoding'  => '--default-character-set',
         'password'  => '--password'
       }
-      args.map { |opt, arg| "#{arg}=#{config[opt]}" if config[opt] }.compact.join(' ')
+      args.map { |opt, arg| "#{arg}='#{config[opt]}'" if config[opt] }.compact.join(' ')
     end
 
     def pg_env

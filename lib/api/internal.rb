@@ -1,6 +1,10 @@
-module Gitlab
+module API
   # Internal access API
   class Internal < Grape::API
+
+    DOWNLOAD_COMMANDS = %w{ git-upload-pack git-upload-archive }
+    PUSH_COMMANDS = %w{ git-receive-pack }
+
     namespace 'internal' do
       #
       # Check if ssh key has access to project code
@@ -25,17 +29,17 @@ module Gitlab
         return false unless project
 
 
-        if key.is_deploy_key
-          project == key.project && git_cmd == 'git-upload-pack'
+        if key.is_a? DeployKey
+          key.projects.include?(project) && DOWNLOAD_COMMANDS.include?(git_cmd)
         else
           user = key.user
 
           return false if user.blocked?
 
           action = case git_cmd
-                   when 'git-upload-pack', 'git-upload-archive'
+                   when *DOWNLOAD_COMMANDS
                      then :download_code
-                   when 'git-receive-pack'
+                   when *PUSH_COMMANDS
                      then
                      if project.protected_branch?(params[:ref])
                        :push_code_to_protected_branches
@@ -58,7 +62,7 @@ module Gitlab
 
       get "/check" do
         {
-          api_version: Gitlab::API.version,
+          api_version: API.version,
           gitlab_version: Gitlab::VERSION,
           gitlab_rev: Gitlab::REVISION,
         }

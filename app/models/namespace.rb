@@ -27,6 +27,7 @@ class Namespace < ActiveRecord::Base
                       message: "only letters, digits, spaces & '_' '-' '.' allowed." }
   validates :description, length: { within: 0..255 }
   validates :path, uniqueness: true, presence: true, length: { within: 1..255 },
+            exclusion: { in: Gitlab::Blacklist.path },
             format: { with: Gitlab::Regex.path_regex,
                       message: "only letters, digits & '_' '-' '.' allowed. Letter should be first" }
 
@@ -72,7 +73,7 @@ class Namespace < ActiveRecord::Base
         gitlab_shell.rm_satellites(path_was)
         send_update_instructions
       rescue
-        # Returning false does not rolback after_* transaction but gives
+        # Returning false does not rollback after_* transaction but gives
         # us information about failing some of tasks
         false
       end

@@ -2,6 +2,24 @@ require 'digest/md5'
 require 'uri'
 
 module ApplicationHelper
+  COLOR_SCHEMES = {
+    1 => 'white',
+    2 => 'dark',
+    3 => 'solarized-dark',
+    4 => 'monokai',
+  }
+  COLOR_SCHEMES.default = 'white'
+
+  # Helper method to access the COLOR_SCHEMES
+  #
+  # The keys are the `color_scheme_ids`
+  # The values are the `name` of the scheme.
+  #
+  # The preview images are `name-scheme-preview.png`
+  # The stylesheets should use the css class `.name`
+  def color_schemes
+    COLOR_SCHEMES.freeze
+  end
 
   # Check if a particular controller is the current one
   #
@@ -17,7 +35,7 @@ module ApplicationHelper
     args.any? { |v| v.to_s.downcase == controller.controller_name }
   end
 
-  # Check if a partcular action is the current one
+  # Check if a particular action is the current one
   #
   # args - One or more action names to check
   #
@@ -37,7 +55,7 @@ module ApplicationHelper
     if !Gitlab.config.gravatar.enabled || user_email.blank?
       'no_avatar.png'
     else
-      gravatar_url = request.ssl? || Gitlab.config.gitlab.https ? Gitlab.config.gravatar.ssl_url : Gitlab.config.gravatar.plain_url
+      gravatar_url = request.ssl? || gitlab_config.https ? Gitlab.config.gravatar.ssl_url : Gitlab.config.gravatar.plain_url
       user_email.strip!
       sprintf gravatar_url, hash: Digest::MD5.hexdigest(user_email.downcase), size: size
     end
@@ -74,11 +92,10 @@ module ApplicationHelper
   def search_autocomplete_source
     projects = current_user.authorized_projects.map { |p| { label: "project: #{simple_sanitize(p.name_with_namespace)}", url: project_path(p) } }
     groups = current_user.authorized_groups.map { |group| { label: "group: #{simple_sanitize(group.name)}", url: group_path(group) } }
-    teams = current_user.authorized_teams.map { |team| { label: "team: #{simple_sanitize(team.name)}", url: team_path(team) } }
 
     default_nav = [
       { label: "My Profile", url: profile_path },
-      { label: "My SSH Keys", url: keys_path },
+      { label: "My SSH Keys", url: profile_keys_path },
       { label: "My Dashboard", url: root_path },
       { label: "Admin Section", url: admin_root_path },
     ]
@@ -98,19 +115,21 @@ module ApplicationHelper
     project_nav = []
     if @project && @project.repository.exists? && @project.repository.root_ref
       project_nav = [
-        { label: "#{simple_sanitize(@project.name_with_namespace)} - Issues",   url: project_issues_path(@project) },
+        { label: "#{simple_sanitize(@project.name_with_namespace)} - Files",    url: project_tree_path(@project, @ref || @project.repository.root_ref) },
         { label: "#{simple_sanitize(@project.name_with_namespace)} - Commits",  url: project_commits_path(@project, @ref || @project.repository.root_ref) },
+        { label: "#{simple_sanitize(@project.name_with_namespace)} - Network",  url: project_network_path(@project, @ref || @project.repository.root_ref) },
+        { label: "#{simple_sanitize(@project.name_with_namespace)} - Graph",    url: project_graph_path(@project, @ref || @project.repository.root_ref) },
+        { label: "#{simple_sanitize(@project.name_with_namespace)} - Issues",   url: project_issues_path(@project) },
         { label: "#{simple_sanitize(@project.name_with_namespace)} - Merge Requests", url: project_merge_requests_path(@project) },
         { label: "#{simple_sanitize(@project.name_with_namespace)} - Milestones", url: project_milestones_path(@project) },
         { label: "#{simple_sanitize(@project.name_with_namespace)} - Snippets", url: project_snippets_path(@project) },
         { label: "#{simple_sanitize(@project.name_with_namespace)} - Team",     url: project_team_index_path(@project) },
-        { label: "#{simple_sanitize(@project.name_with_namespace)} - Tree",     url: project_tree_path(@project, @ref || @project.repository.root_ref) },
         { label: "#{simple_sanitize(@project.name_with_namespace)} - Wall",     url: project_wall_path(@project) },
         { label: "#{simple_sanitize(@project.name_with_namespace)} - Wiki",     url: project_wikis_path(@project) },
       ]
     end
 
-    [groups, teams, projects, default_nav, project_nav, help_nav].flatten.to_json
+    [groups, projects, default_nav, project_nav, help_nav].flatten.to_json
   end
 
   def emoji_autocomplete_source
@@ -119,22 +138,12 @@ module ApplicationHelper
     Emoji.names.to_s
   end
 
-  def ldap_enable?
-    Devise.omniauth_providers.include?(:ldap)
-  end
-
   def app_theme
     Gitlab::Theme.css_class_by_id(current_user.try(:theme_id))
   end
 
   def user_color_scheme_class
-    case current_user.color_scheme_id
-    when 1 then 'white'
-    when 2 then 'black'
-    when 3 then 'solarized-dark'
-    else
-      'white'
-    end
+    COLOR_SCHEMES[current_user.try(:color_scheme_id)] if defined?(current_user)
   end
 
   # Define whenever show last push event
@@ -184,8 +193,46 @@ module ApplicationHelper
   alias_method :url_to_image, :image_url
 
   def users_select_tag(id, opts = {})
-    css_class = "ajax-users-select"
-    css_class << " multiselect" if opts[:multiple]
-    hidden_field_tag(id, '', class: css_class)
+    css_class = "ajax-users-select "
+    css_class << "multiselect " if opts[:multiple]
+    css_class << (opts[:class] || '')
+    value = opts[:selected] || ''
+
+    hidden_field_tag(id, value, class: css_class)
+  end
+
+  def body_data_page
+    path = controller.controller_path.split('/')
+    namespace = path.first if path.second
+
+    [namespace, controller.controller_name, controller.action_name].compact.join(":")
+  end
+
+  # shortcut for gitlab config
+  def gitlab_config
+    Gitlab.config.gitlab
+  end
+
+  # shortcut for gitlab extra config
+  def extra_config
+    Gitlab.config.extra
+  end
+
+  def public_icon
+    content_tag :i, nil, class: 'icon-globe cblue'
+  end
+
+  def private_icon
+    content_tag :i, nil, class: 'icon-lock cgreen'
+  end
+
+  def search_placeholder
+    if @project && @project.persisted?
+      "Search in this project"
+    elsif @group && @group.persisted?
+      "Search in this group"
+    else
+      "Search"
+    end
   end
 end

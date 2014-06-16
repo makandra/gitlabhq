@@ -17,7 +17,7 @@ require 'sidekiq/testing/inline'
 require './features/support/allow_rescue'
 
 
-%w(valid_commit select2_helper test_env).each do |f|
+%w(valid_commit select2_helper chosen_helper test_env).each do |f|
   require Rails.root.join('spec', 'support', f)
 end
 
@@ -38,8 +38,7 @@ Capybara.ignore_hidden_elements = false
 DatabaseCleaner.strategy = :truncation
 
 Spinach.hooks.before_scenario do
-  TestEnv.init(mailer: false)
-
+  TestEnv.setup_stubs
   DatabaseCleaner.start
 end
 
@@ -48,6 +47,7 @@ Spinach.hooks.after_scenario do
 end
 
 Spinach.hooks.before_run do
+  TestEnv.init(mailer: false, init_repos: true, repos: false)
   RSpec::Mocks::setup self
 
   include FactoryGirl::Syntax::Methods

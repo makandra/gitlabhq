@@ -37,6 +37,8 @@ end
 # Default settings
 Settings['ldap'] ||= Settingslogic.new({})
 Settings.ldap['enabled'] = false if Settings.ldap['enabled'].nil?
+Settings.ldap['allow_username_or_email_login'] = false if Settings.ldap['allow_username_or_email_login'].nil?
+
 
 Settings['omniauth'] ||= Settingslogic.new({})
 Settings.omniauth['enabled']      = false if Settings.omniauth['enabled'].nil?
@@ -48,7 +50,9 @@ Settings['issues_tracker']  ||= {}
 # GitLab
 #
 Settings['gitlab'] ||= Settingslogic.new({})
-Settings.gitlab['default_projects_limit'] ||=  10
+Settings.gitlab['default_projects_limit'] ||= 10
+Settings.gitlab['default_can_create_group'] = true if Settings.gitlab['default_can_create_group'].nil?
+Settings.gitlab['default_can_create_team']  = true if Settings.gitlab['default_can_create_team'].nil?
 Settings.gitlab['host']       ||= 'localhost'
 Settings.gitlab['https']        = false if Settings.gitlab['https'].nil?
 Settings.gitlab['port']       ||= Settings.gitlab.https ? 443 : 80
@@ -58,8 +62,19 @@ Settings.gitlab['email_from'] ||= "gitlab@#{Settings.gitlab.host}"
 Settings.gitlab['support_email']  ||= Settings.gitlab.email_from
 Settings.gitlab['url']        ||= Settings.send(:build_gitlab_url)
 Settings.gitlab['user']       ||= 'git'
+Settings.gitlab['user_home']  ||= begin
+  Etc.getpwnam(Settings.gitlab['user']).dir
+rescue ArgumentError # no user configured
+  '/home/' + Settings.gitlab['user']
+end
 Settings.gitlab['signup_enabled'] ||= false
 Settings.gitlab['username_changing_enabled'] = true if Settings.gitlab['username_changing_enabled'].nil?
+Settings.gitlab['default_projects_features'] ||= {}
+Settings.gitlab.default_projects_features['issues']         = true if Settings.gitlab.default_projects_features['issues'].nil?
+Settings.gitlab.default_projects_features['merge_requests'] = true if Settings.gitlab.default_projects_features['merge_requests'].nil?
+Settings.gitlab.default_projects_features['wiki']           = true if Settings.gitlab.default_projects_features['wiki'].nil?
+Settings.gitlab.default_projects_features['wall']           = false if Settings.gitlab.default_projects_features['wall'].nil?
+Settings.gitlab.default_projects_features['snippets']       = false if Settings.gitlab.default_projects_features['snippets'].nil?
 
 #
 # Gravatar
@@ -73,10 +88,10 @@ Settings.gravatar['ssl_url']    ||= 'https://secure.gravatar.com/avatar/%{hash}?
 # GitLab Shell
 #
 Settings['gitlab_shell'] ||= Settingslogic.new({})
-Settings.gitlab_shell['hooks_path']   ||= '/home/git/gitlab-shell/hooks/'
+Settings.gitlab_shell['hooks_path']   ||= Settings.gitlab['user_home'] + '/gitlab-shell/hooks/'
 Settings.gitlab_shell['receive_pack']   = true if Settings.gitlab_shell['receive_pack'].nil?
 Settings.gitlab_shell['upload_pack']    = true if Settings.gitlab_shell['upload_pack'].nil?
-Settings.gitlab_shell['repos_path']   ||= '/home/git/repositories/'
+Settings.gitlab_shell['repos_path']   ||= Settings.gitlab['user_home'] + '/repositories/'
 Settings.gitlab_shell['ssh_host']     ||= (Settings.gitlab.host || 'localhost')
 Settings.gitlab_shell['ssh_port']     ||= 22
 Settings.gitlab_shell['ssh_user']     ||= Settings.gitlab.user
@@ -100,3 +115,17 @@ Settings.git['timeout']   ||= 10
 
 Settings['satellites'] ||= Settingslogic.new({})
 Settings.satellites['path'] = File.expand_path(Settings.satellites['path'] || "tmp/repo_satellites/", Rails.root)
+
+#
+# Extra customization
+#
+Settings['extra'] ||= Settingslogic.new({})
+
+#
+# Testing settings
+#
+if Rails.env.test?
+  Settings.gitlab['default_projects_limit']   = 42
+  Settings.gitlab['default_can_create_group'] = false
+  Settings.gitlab['default_can_create_team']  = false
+end

@@ -1,7 +1,5 @@
 class GroupsController < ApplicationController
   respond_to :html
-  layout 'group', except: [:new, :create]
-
   before_filter :group, except: [:new, :create]
 
   # Authorize
@@ -11,6 +9,10 @@ class GroupsController < ApplicationController
 
   # Load group projects
   before_filter :projects, except: [:new, :create]
+
+  layout :determine_layout
+
+  before_filter :set_title, only: [:new, :create]
 
   def new
     @group = Group.new
@@ -59,21 +61,10 @@ class GroupsController < ApplicationController
     end
   end
 
-  def people
+  def members
     @project = group.projects.find(params[:project_id]) if params[:project_id]
-    @users = @project ? @project.users : group.users
-    @users.sort_by!(&:name)
-
-    if @project
-      @team_member = @project.users_projects.new
-    else
-      @team_member = UsersProject.new
-    end
-  end
-
-  def team_members
-    @group.add_users_to_project_teams(params[:user_ids], params[:project_access])
-    redirect_to people_group_path(@group), notice: 'Users were successfully added.'
+    @members = group.users_groups.order('group_access DESC')
+    @users_group = UsersGroup.new
   end
 
   def edit
@@ -81,7 +72,7 @@ class GroupsController < ApplicationController
 
   def update
     group_params = params[:group].dup
-    owner_id =group_params.delete(:owner_id)
+    owner_id = group_params.delete(:owner_id)
 
     if owner_id
       @group.owner = User.find(owner_id)
@@ -96,7 +87,6 @@ class GroupsController < ApplicationController
   end
 
   def destroy
-    @group.truncate_teams
     @group.destroy
 
     redirect_to root_path, notice: 'Group was removed.'
@@ -132,6 +122,18 @@ class GroupsController < ApplicationController
   def authorize_admin_group!
     unless can?(current_user, :manage_group, group)
       return render_404
+    end
+  end
+
+  def set_title
+    @title = 'New Group'
+  end
+
+  def determine_layout
+    if [:new, :create].include?(action_name.to_sym)
+      'navless'
+    else
+      'group'
     end
   end
 end

@@ -2,6 +2,7 @@ require 'spec_helper'
 
 describe UsersProjectObserver do
   before(:each) { enable_observers }
+  after(:each) { disable_observers }
 
   let(:user) { create(:user) }
   let(:project) { create(:project) }
@@ -16,7 +17,7 @@ describe UsersProjectObserver do
 
     it "should send email to user" do
       subject.should_receive(:notification)
-      Event.stub(:create => true)
+      Event.stub(create: true)
 
       create(:users_project)
     end

@@ -3,30 +3,44 @@
 .row
   .span9
     = render "events/event_last_push", event: @last_push
-    .content_list= render @events
+    .content_list
     .loading.hide
   .span3
-    .ui-box.white
-      .padded
-        %h3.page_title
-          = @project.name
-        - if @project.description.present?
-          %p.light= @project.description
+    .light-well
+      %h3.page-title
+        = @project.name
+      - if @project.description.present?
+        %p.light= @project.description
 
-        %hr
+      %hr
+      %p
+      %p
+        %span.light Repo size is
+        #{@project.repository.size} MB
+      %p
+        %span.light Created at
+        #{@project.created_at.stamp('Aug 22, 2013')}
+      %p
+        %span.light Owned by
+        - if @project.group
+          #{link_to @project.group.name, @project.group} Group
+        - else
+          #{link_to @project.owner_name, @project.owner}
+      - if @project.forked_from_project
         %p
-          Access level:
-          - if @project.public
-            %span.cblue
-              %i.icon-share
-              Public
-          - else
-            %span.cgreen
-              %i.icon-lock
-              Private
+          %i.icon-code-fork
+          Forked from:
+          = link_to @project.forked_from_project.name_with_namespace, project_path(@project.forked_from_project)
 
-        %p Repo Size: #{@project.repository.size} MB
-        %p Created at: #{@project.created_at.stamp('Aug 22, 2013')}
-        %p Owner: #{link_to @project.owner_name, @project.owner}
-:javascript
-  $(function(){ Pager.init(20); });
+      %hr
+      %p
+        = link_to pluralize(@repository.round_commit_count, 'commit'), project_commits_path(@project, @ref || @repository.root_ref)
+      %p
+        = link_to pluralize(@repository.branch_names.count, 'branch'), project_branches_path(@project)
+      %p
+        = link_to pluralize(@repository.tag_names.count, 'tag'), project_tags_path(@project)
+
+      - if @project.gitlab_ci?
+        %hr
+        = link_to @project.gitlab_ci_service.builds_path do
+          = image_tag @project.gitlab_ci_service.status_img_path, alt: "build status"

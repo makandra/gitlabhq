@@ -17,9 +17,9 @@ class ProjectBrowseCommits < Spinach::FeatureSteps
   Then 'I see commits atom feed' do
     commit = @project.repository.commit
     page.response_headers['Content-Type'].should have_content("application/atom+xml")
-    page.body.should have_selector("title", :text => "Recent commits to #{@project.name}")
-    page.body.should have_selector("author email", :text => commit.author_email)
-    page.body.should have_selector("entry summary", :text => commit.description)
+    page.body.should have_selector("title", text: "Recent commits to #{@project.name}")
+    page.body.should have_selector("author email", text: commit.author_email)
+    page.body.should have_selector("entry summary", text: commit.description)
   end
 
   Given 'I click on commit link' do
@@ -48,7 +48,7 @@ class ProjectBrowseCommits < Spinach::FeatureSteps
     page.should have_selector('ul.breadcrumb span.divider', count: 3)
     page.should have_selector('ul.breadcrumb a', count: 4)
 
-    find('ul.breadcrumb li:first a')['href'].should match(/#{@project.path_with_namespace}\/commits\/master\z/)
+    find('ul.breadcrumb li:nth-child(2) a')['href'].should match(/#{@project.path_with_namespace}\/commits\/master\z/)
     find('ul.breadcrumb li:last a')['href'].should match(%r{master/app/models/project\.rb\z})
   end
 

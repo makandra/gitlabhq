@@ -6,8 +6,8 @@
 #  name                   :string(255)
 #  path                   :string(255)
 #  description            :text
-#  created_at             :datetime         not null
-#  updated_at             :datetime         not null
+#  created_at             :datetime
+#  updated_at             :datetime
 #  creator_id             :integer
 #  default_branch         :string(255)
 #  issues_enabled         :boolean          default(TRUE), not null
@@ -20,6 +20,7 @@
 #  issues_tracker_id      :string(255)
 #  snippets_enabled       :boolean          default(TRUE), not null
 #  last_activity_at       :datetime
+#  imported               :boolean          default(FALSE), not null
 #
 
 require "grit"
@@ -34,9 +35,7 @@ class Project < ActiveRecord::Base
 
   attr_accessible :namespace_id, :creator_id, as: :admin
 
-  acts_as_taggable_on :labels
-
-  attr_accessor :import_url
+  acts_as_taggable_on :labels, :issues_default_labels
 
   # Relations
   belongs_to :creator,      foreign_key: "creator_id", class_name: "User"
@@ -45,35 +44,40 @@ class Project < ActiveRecord::Base
 
   has_one :last_event, class_name: 'Event', order: 'events.created_at DESC', foreign_key: 'project_id'
   has_one :gitlab_ci_service, dependent: :destroy
+  has_one :campfire_service, dependent: :destroy
+  has_one :hipchat_service, dependent: :destroy
+  has_one :forked_project_link, dependent: :destroy, foreign_key: "forked_to_project_id"
+  has_one :forked_from_project, through: :forked_project_link
 
+  has_many :services,           dependent: :destroy
   has_many :events,             dependent: :destroy
-  has_many :merge_requests,     dependent: :destroy
+  has_many :merge_requests,     dependent: :destroy, foreign_key: "target_project_id"
   has_many :issues,             dependent: :destroy, order: "state DESC, created_at DESC"
   has_many :milestones,         dependent: :destroy
-  has_many :users_projects,     dependent: :destroy
   has_many :notes,              dependent: :destroy
-  has_many :snippets,           dependent: :destroy
-  has_many :deploy_keys,        dependent: :destroy, class_name: "Key", foreign_key: "project_id"
+  has_many :snippets,           dependent: :destroy, class_name: "ProjectSnippet"
   has_many :hooks,              dependent: :destroy, class_name: "ProjectHook"
   has_many :protected_branches, dependent: :destroy
-  has_many :user_team_project_relationships, dependent: :destroy
 
-  has_many :users,          through: :users_projects
-  has_many :user_teams,     through: :user_team_project_relationships
-  has_many :user_team_user_relationships, through: :user_teams
-  has_many :user_teams_members, through: :user_team_user_relationships
+  has_many :users_projects, dependent: :destroy
+  has_many :users, through: :users_projects
+
+  has_many :deploy_keys_projects, dependent: :destroy
+  has_many :deploy_keys, through: :deploy_keys_projects
 
   delegate :name, to: :owner, allow_nil: true, prefix: true
+  delegate :members, to: :team, prefix: true
 
   # Validations
   validates :creator, presence: true
   validates :description, length: { within: 0..2000 }
   validates :name, presence: true, length: { within: 0..255 },
             format: { with: Gitlab::Regex.project_name_regex,
-                      message: "only letters, digits, spaces & '_' '-' '.' allowed. Letter should be first" }
+                      message: "only letters, digits, spaces & '_' '-' '.' allowed. Letter or digit should be first" }
   validates :path, presence: true, length: { within: 0..255 },
+            exclusion: { in: Gitlab::Blacklist.path },
             format: { with: Gitlab::Regex.path_regex,
-                      message: "only letters, digits & '_' '-' '.' allowed. Letter should be first" }
+                      message: "only letters, digits & '_' '-' '.' allowed. Letter or digit should be first" }
   validates :issues_enabled, :wall_enabled, :merge_requests_enabled,
             :wiki_enabled, inclusion: { in: [true, false] }
   validates :issues_tracker_id, length: { within: 0..255 }
@@ -82,10 +86,10 @@ class Project < ActiveRecord::Base
   validates_uniqueness_of :path, scope: :namespace_id
 
   validates :import_url,
-    format: { with: URI::regexp(%w(http https)), message: "should be a valid url" },
+    format: { with: URI::regexp(%w(git http https)), message: "should be a valid url" },
     if: :import?
 
-  validate :check_limit, :repo_name
+  validate :check_limit, on: :create
 
   # Scopes
   scope :without_user, ->(user)  { where("projects.id NOT IN (:ids)", ids: user.authorized_projects.map(&:id) ) }
@@ -94,7 +98,7 @@ class Project < ActiveRecord::Base
   scope :in_team, ->(team) { where("projects.id IN (:ids)", ids: team.projects.map(&:id)) }
   scope :in_namespace, ->(namespace) { where(namespace_id: namespace.id) }
   scope :in_group_namespace, -> { joins(:group) }
-  scope :sorted_by_activity, -> { order("projects.last_activity_at DESC") }
+  scope :sorted_by_activity, -> { reorder("projects.last_activity_at DESC") }
   scope :personal, ->(user) { where(namespace_id: user.namespace_id) }
   scope :joined, ->(user) { where("namespace_id != ?", user.namespace_id) }
   scope :public_only, -> { where(public: true) }
@@ -103,11 +107,7 @@ class Project < ActiveRecord::Base
 
   class << self
     def abandoned
-      project_ids = Event.select('max(created_at) as latest_date, project_id').
-        group('project_id').
-        having('latest_date < ?', 6.months.ago).map(&:project_id)
-
-      where(id: project_ids)
+      where('projects.last_activity_at < ?', 6.months.ago)
     end
 
     def with_push
@@ -155,20 +155,16 @@ class Project < ActiveRecord::Base
     import_url.present?
   end
 
+  def imported?
+    imported
+  end
+
   def check_limit
     unless creator.can_create_project?
       errors[:limit_reached] << ("Your own projects limit is #{creator.projects_limit}! Please contact administrator to increase it")
     end
   rescue
     errors[:base] << ("Can't check your ability to create project")
-  end
-
-  def repo_name
-    denied_paths = %w(admin dashboard groups help profile projects search)
-
-    if denied_paths.include?(path)
-      errors.add(:path, "like #{path} is not allowed")
-    end
   end
 
   def to_param
@@ -200,7 +196,7 @@ class Project < ActiveRecord::Base
   end
 
   def issues_labels
-    issues.tag_counts_on(:labels)
+    @issues_labels ||= (issues_default_labels + issues.tags_on(:labels)).uniq.sort_by(&:name)
   end
 
   def issue_exists?(issue_id)
@@ -219,8 +215,18 @@ class Project < ActiveRecord::Base
     self.issues_enabled && !self.used_default_issues_tracker?
   end
 
-  def services
-    [gitlab_ci_service].compact
+  def build_missing_services
+    available_services_names.each do |service_name|
+      service = services.find { |service| service.to_param == service_name }
+
+      # If service is available but missing in db
+      # we should create an instance. Ex `create_gitlab_ci_service`
+      service = self.send :"create_#{service_name}_service" if service.nil?
+    end
+  end
+
+  def available_services_names
+    %w(gitlab_ci campfire hipchat)
   end
 
   def gitlab_ci?
@@ -242,8 +248,8 @@ class Project < ActiveRecord::Base
   end
 
   def send_move_instructions
-    self.users_projects.each do |member|
-      Notify.delay.project_was_moved_email(member.id)
+    team.members.each do |user|
+      Notify.delay.project_was_moved_email(self.id, user.id)
     end
   end
 
@@ -306,7 +312,7 @@ class Project < ActiveRecord::Base
   def discover_default_branch
     # Discover the default branch, but only if it hasn't already been set to
     # something else
-    if repository && default_branch.nil?
+    if repository.exists? && default_branch.nil?
       update_attributes(default_branch: self.repository.discover_default_branch)
     end
   end
@@ -401,5 +407,38 @@ class Project < ActiveRecord::Base
   # Check if current branch name is marked as protected in the system
   def protected_branch? branch_name
     protected_branches_names.include?(branch_name)
+  end
+
+  def forked?
+    !(forked_project_link.nil? || forked_project_link.forked_from_project.nil?)
+  end
+
+  def personal?
+    !group
+  end
+
+  def rename_repo
+    old_path_with_namespace = File.join(namespace_dir, path_was)
+    new_path_with_namespace = File.join(namespace_dir, path)
+
+    if gitlab_shell.mv_repository(old_path_with_namespace, new_path_with_namespace)
+      # If repository moved successfully we need to remove old satellite
+      # and send update instructions to users.
+      # However we cannot allow rollback since we moved repository
+      # So we basically we mute exceptions in next actions
+      begin
+        gitlab_shell.mv_repository("#{old_path_with_namespace}.wiki", "#{new_path_with_namespace}.wiki")
+        gitlab_shell.rm_satellites(old_path_with_namespace)
+        send_move_instructions
+      rescue
+        # Returning false does not rollback after_* transaction but gives
+        # us information about failing some of tasks
+        false
+      end
+    else
+      # if we cannot move namespace directory we should rollback
+      # db changes in order to prevent out of sync between db and fs
+      raise Exception.new('repository cannot be renamed')
+    end
   end
 end

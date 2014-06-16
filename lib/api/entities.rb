@@ -1,8 +1,8 @@
-module Gitlab
+module API
   module Entities
     class User < Grape::Entity
       expose :id, :username, :email, :name, :bio, :skype, :linkedin, :twitter,
-             :dark_scheme, :theme_id, :state, :created_at, :extern_uid, :provider
+             :theme_id, :color_scheme_id, :state, :created_at, :extern_uid, :provider
     end
 
     class UserSafe < Grape::Entity
@@ -25,18 +25,37 @@ module Gitlab
       expose :id, :url, :created_at
     end
 
-    class Project < Grape::Entity
-      expose :id, :name, :description, :default_branch
-      expose :owner, using: Entities::UserBasic
-      expose :public
+    class ForkedFromProject < Grape::Entity
+      expose :id
+      expose :name, :name_with_namespace
       expose :path, :path_with_namespace
-      expose :issues_enabled, :merge_requests_enabled, :wall_enabled, :wiki_enabled, :created_at
+    end
+
+    class Project < Grape::Entity
+      expose :id, :description, :default_branch, :public, :ssh_url_to_repo, :http_url_to_repo, :web_url
+      expose :owner, using: Entities::UserBasic
+      expose :name, :name_with_namespace
+      expose :path, :path_with_namespace
+      expose :issues_enabled, :merge_requests_enabled, :wall_enabled, :wiki_enabled, :snippets_enabled, :created_at, :last_activity_at, :public
       expose :namespace
+      expose :forked_from_project, using: Entities::ForkedFromProject, :if => lambda{ | project, options | project.forked? }
     end
 
     class ProjectMember < UserBasic
       expose :project_access, as: :access_level do |user, options|
         options[:project].users_projects.find_by_user_id(user.id).project_access
+      end
+    end
+
+    class TeamMember < UserBasic
+      expose :permission, as: :access_level do |user, options|
+        options[:user_team].user_team_user_relationships.find_by_user_id(user.id).permission
+      end
+    end
+
+    class TeamProject < Project
+      expose :greatest_access, as: :greatest_access_level do |project, options|
+        options[:user_team].user_team_project_relationships.find_by_project_id(project.id).greatest_access
       end
     end
 
@@ -103,6 +122,12 @@ module Gitlab
     class MRNote < Grape::Entity
       expose :note
       expose :author, using: Entities::UserBasic
+    end
+
+    class Event < Grape::Entity
+      expose :title, :project_id, :action_name
+      expose :target_id, :target_type, :author_id
+      expose :data, :target_title
     end
   end
 end

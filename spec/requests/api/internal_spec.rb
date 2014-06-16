@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe Gitlab::API do
+describe API::API do
   include ApiHelpers
 
   let(:user) { create(:user) }
@@ -12,7 +12,7 @@ describe Gitlab::API do
       get api("/internal/check")
 
       response.status.should == 200
-      json_response['api_version'].should == Gitlab::API.version
+      json_response['api_version'].should == API::API.version
     end
   end
 
@@ -100,6 +100,32 @@ describe Gitlab::API do
         end
       end
     end
+
+    context "deploy key" do
+      let(:key) { create(:deploy_key) }
+
+      context "added to project" do
+        before do
+          key.projects << project
+        end
+
+        it do
+          archive(key, project)
+
+          response.status.should == 200
+          response.body.should == 'true'
+        end
+      end
+
+      context "not added to project" do
+        it do
+          archive(key, project)
+
+          response.status.should == 200
+          response.body.should == 'false'
+        end
+      end
+    end
   end
 
   def pull(key, project)
@@ -119,6 +145,16 @@ describe Gitlab::API do
       key_id: key.id,
       project: project.path_with_namespace,
       action: 'git-receive-pack'
+    )
+  end
+
+  def archive(key, project)
+    get(
+      api("/internal/allowed"),
+      ref: 'master',
+      key_id: key.id,
+      project: project.path_with_namespace,
+      action: 'git-upload-archive'
     )
   end
 end

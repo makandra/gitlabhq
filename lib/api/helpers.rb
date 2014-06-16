@@ -1,16 +1,16 @@
-module Gitlab
+module API
   module APIHelpers
     def current_user
       @current_user ||= User.find_by_authentication_token(params[:private_token].to_s || env["HTTP_PRIVATE_TOKEN"].to_s)
     end
 
     def user_project
-      @project ||= find_project
+      @project ||= find_project(params[:id])
       @project || not_found!
     end
 
-    def find_project
-      project = Project.find_by_id(params[:id]) || Project.find_with_namespace(params[:id])
+    def find_project(id)
+      project = Project.find_by_id(id) || Project.find_with_namespace(id)
 
       if project && can?(current_user, :read_project, project)
         project

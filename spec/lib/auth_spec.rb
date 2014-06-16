@@ -36,7 +36,7 @@ describe Gitlab::Auth do
     end
 
 
-    it "should create from auth if user doesnot exist"do
+    it "should create from auth if user does not exist"do
       User.stub find_by_extern_uid_and_provider: nil
       User.stub find_by_email: nil
       gl_auth.should_receive :create_from_omniauth
@@ -90,6 +90,16 @@ describe Gitlab::Auth do
       user.should be_valid
       user.extern_uid.should == @info.uid
       user.provider.should == 'twitter'
+    end
+
+    it "should apply defaults to user" do
+      @auth = mock(info: @info, provider: 'ldap')
+      user = gl_auth.create_from_omniauth(@auth, true)
+
+      user.should be_valid
+      user.projects_limit.should == Gitlab.config.gitlab.default_projects_limit
+      user.can_create_group.should == Gitlab.config.gitlab.default_can_create_group
+      user.can_create_team.should == Gitlab.config.gitlab.default_can_create_team
     end
   end
 end

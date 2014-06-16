@@ -10,7 +10,7 @@ module Gitlab
     #   add_repository("gitlab/gitlab-ci")
     #
     def add_repository(name)
-      system("#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects add-project #{name}.git")
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "add-project", "#{name}.git"
     end
 
     # Import repository
@@ -21,7 +21,7 @@ module Gitlab
     #   import_repository("gitlab/gitlab-ci", "https://github.com/randx/six.git")
     #
     def import_repository(name, url)
-      system("#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects import-project #{name}.git #{url}")
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "import-project", "#{name}.git", url
     end
 
     # Move repository
@@ -33,7 +33,31 @@ module Gitlab
     #   mv_repository("gitlab/gitlab-ci", "randx/gitlab-ci-new.git")
     #
     def mv_repository(path, new_path)
-      system("#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects mv-project #{path}.git #{new_path}.git")
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "mv-project", "#{path}.git", "#{new_path}.git"
+    end
+
+    # Update HEAD for repository
+    #
+    # path - project path with namespace
+    # branch - repository branch name
+    #
+    # Ex.
+    #  update_repository_head("gitlab/gitlab-ci", "3-1-stable")
+    #
+    def update_repository_head(path, branch)
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "update-head", "#{path}.git", branch
+    end
+
+    # Fork repository to new namespace
+    #
+    # path - project path with namespace
+    # fork_namespace - namespace for forked project
+    #
+    # Ex.
+    #  fork_repository("gitlab/gitlab-ci", "randx")
+    #
+    def fork_repository(path, fork_namespace)
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "fork-project", "#{path}.git", fork_namespace
     end
 
     # Remove repository from file system
@@ -44,7 +68,57 @@ module Gitlab
     #   remove_repository("gitlab/gitlab-ci")
     #
     def remove_repository(name)
-      system("#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects rm-project #{name}.git")
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "rm-project", "#{name}.git"
+    end
+
+    # Add repository branch from passed ref
+    #
+    # path - project path with namespace
+    # branch_name - new branch name
+    # ref - HEAD for new branch
+    #
+    # Ex.
+    #   add_branch("gitlab/gitlab-ci", "4-0-stable", "master")
+    #
+    def add_branch(path, branch_name, ref)
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "create-branch", "#{path}.git", branch_name, ref
+    end
+
+    # Remove repository branch
+    #
+    # path - project path with namespace
+    # branch_name - branch name to remove
+    #
+    # Ex.
+    #   rm_branch("gitlab/gitlab-ci", "4-0-stable")
+    #
+    def rm_branch(path, branch_name)
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "rm-branch", "#{path}.git", branch_name
+    end
+
+    # Add repository tag from passed ref
+    #
+    # path - project path with namespace
+    # tag_name - new tag name
+    # ref - HEAD for new tag
+    #
+    # Ex.
+    #   add_tag("gitlab/gitlab-ci", "v4.0", "master")
+    #
+    def add_tag(path, tag_name, ref)
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "create-tag", "#{path}.git", tag_name, ref
+    end
+
+    # Remove repository tag
+    #
+    # path - project path with namespace
+    # tag_name - tag name to remove
+    #
+    # Ex.
+    #   rm_tag("gitlab/gitlab-ci", "v4.0")
+    #
+    def rm_tag(path, tag_name)
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-projects", "rm-tag", "#{path}.git", tag_name
     end
 
     # Add new key to gitlab-shell
@@ -53,7 +127,7 @@ module Gitlab
     #   add_key("key-42", "sha-rsa ...")
     #
     def add_key(key_id, key_content)
-      system("#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-keys add-key #{key_id} \"#{key_content}\"")
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-keys", "add-key", key_id, key_content
     end
 
     # Remove ssh key from gitlab shell
@@ -62,7 +136,16 @@ module Gitlab
     #   remove_key("key-342", "sha-rsa ...")
     #
     def remove_key(key_id, key_content)
-      system("#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-keys rm-key #{key_id} \"#{key_content}\"")
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-keys", "rm-key", key_id, key_content
+    end
+
+    # Remove all ssh keys from gitlab shell
+    #
+    # Ex.
+    #   remove_all_keys
+    #
+    def remove_all_keys
+      system "#{gitlab_shell_user_home}/gitlab-shell/bin/gitlab-keys", "clear"
     end
 
     # Add empty directory for storing repositories

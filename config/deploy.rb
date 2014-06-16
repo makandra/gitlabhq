@@ -78,7 +78,7 @@ namespace :deploy do
 
   task :additional_symlinks do
     run "ln -nfs #{shared_path}/storage #{release_path}/storage"
-    run "ln -nfs #{shared_path}/config/secret_token.rb #{release_path}/config/initializers/secret_token.rb" 
+    run "ln -nfs #{shared_path}/.secret #{release_path}/.secret" 
     run "ln -nfs #{shared_path}/config/gitlab.yml #{release_path}/config/gitlab.yml"
   end
 
