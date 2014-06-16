@@ -9,6 +9,7 @@ ENV['RAILS_ENV'] = 'test'
 require './config/environment'
 
 require 'rspec'
+require 'rspec/expectations'
 require 'database_cleaner'
 require 'spinach/capybara'
 require 'sidekiq/testing/inline'
@@ -16,8 +17,7 @@ require 'sidekiq/testing/inline'
 
 require './features/support/allow_rescue'
 
-
-%w(valid_commit select2_helper chosen_helper test_env).each do |f|
+%w(valid_commit valid_commit_with_alt_email big_commits select2_helper test_env).each do |f|
   require Rails.root.join('spec', 'support', f)
 end
 
@@ -29,10 +29,13 @@ WebMock.allow_net_connect!
 #
 require 'capybara/poltergeist'
 Capybara.javascript_driver = :poltergeist
+Capybara.register_driver :poltergeist do |app|
+    Capybara::Poltergeist::Driver.new(app, :js_errors => false, :timeout => 60)
+end
 Spinach.hooks.on_tag("javascript") do
   ::Capybara.current_driver = ::Capybara.javascript_driver
 end
-Capybara.default_wait_time = 10
+Capybara.default_wait_time = 60
 Capybara.ignore_hidden_elements = false
 
 DatabaseCleaner.strategy = :truncation
